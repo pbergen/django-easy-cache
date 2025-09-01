@@ -1,0 +1,48 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Visual Studio Code
+.vscode/
+.kilocode/
+
+# PyCharm
+.idea/
+
+# OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Basics
+__pycache__/
+*.pid
+*.db
+.env
+.venv
+
+
+# Logs
+*.log
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.coverage.*
+.cache
+.tox
+builds
+htmlcov
+test-reports
+coverage.xml
+.bash_history
+
+# Translations
+*.mo
+*.pot
+
+# Media dir and collected statics
+media/*
+!media/test-data/*
+staticfiles
+*.zip
+.ruff_cache/
+.pytest_cache/
