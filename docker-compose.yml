@@ -1,0 +1,94 @@
+services:
+  # Django Smart Cache Development Environment
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-smart-cache-dev
+    volumes:
+      # Package source code (live reload)
+      - .:/app
+      # Separate volume for dependencies (faster rebuilds)
+      - uv_cache:/root/.cache/uv
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DJANGO_SETTINGS_MODULE=settings
+    command: uv run python manage.py runserver 0.0.0.0:8000
+    working_dir: /app
+    depends_on:
+      - redis
+      - postgres
+
+  # Redis for cache testing
+  redis:
+    image: redis:7-alpine
+    container_name: django-smart-cache-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  # PostgreSQL for advanced testing
+  postgres:
+    image: postgres:15-alpine
+    container_name: django-smart-cache-postgres
+    environment:
+      POSTGRES_DB: smartcache_test
+      POSTGRES_USER: smartcache
+      POSTGRES_PASSWORD: smartcache_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - '6333:6333'
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+
+  # Testing container (runs tests in isolation)
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-smart-cache-test
+    volumes:
+      - .:/app
+      - uv_cache:/root/.cache/uv
+    environment:
+      - PYTHONPATH=/app
+      - DJANGO_SETTINGS_MODULE=settings
+    working_dir: /app
+    command: uv run pytest tests/ -v
+    depends_on:
+      - redis
+      - postgres
+    profiles:
+      - test
+
+  # Package building container
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-smart-cache-build
+    volumes:
+      - .:/app
+      - build_output:/app/dist
+    working_dir: /app
+    command: uv run python -m build
+    profiles:
+      - build
+
+volumes:
+  uv_cache:
+  redis_data:
+  postgres_data:
+  build_output:
+  qdrant_storage:

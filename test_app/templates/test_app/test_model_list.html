@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Models List</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .model-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .model-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .model-item:last-child {
+            border-bottom: none;
+        }
+        .model-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .model-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Test Models</h1>
+        <a href="/" style="color: white;">← Back to Home</a>
+    </div>
+
+    <div class="model-list">
+        {% for model in models %}
+            <div class="model-item">
+                <div class="model-name">{{ model.name }}</div>
+                {% if model.description %}
+                    <div>{{ model.description }}</div>
+                {% endif %}
+                <div class="model-meta">
+                    Created: {{ model.created_at|date:"Y-m-d H:i" }} |
+                    Active: {{ model.active|yesno:"Yes,No" }}
+                </div>
+            </div>
+        {% empty %}
+            <div class="model-item">
+                <p>No test models found. Create some via the <a href="/admin/">admin interface</a>.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <div style="text-align: center; margin-top: 1rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</body>
+</html>
