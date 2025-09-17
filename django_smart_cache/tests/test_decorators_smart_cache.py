@@ -21,7 +21,7 @@ class TestSmartCacheDecorator(TestCase):
 
     def test_init_custom_values(self):
         """Test initialization with custom values"""
-        decorator = SmartCacheDecorator(key_template="{function_name}_{custom}", cache_name="custom_cache")
+        decorator = SmartCacheDecorator(key_template="{function_name}_{custom}", cache_backend="custom_cache")
         self.assertEqual(decorator.key_template, "{function_name}_{custom}")
         self.assertEqual(decorator.cache_name, "custom_cache")
 
@@ -155,7 +155,7 @@ class TestSmartCacheDecorator(TestCase):
         """Test cache backend initialization in SmartCacheDecorator"""
         from django.core.cache import caches
 
-        decorator = SmartCacheDecorator(cache_name="default")
+        decorator = SmartCacheDecorator(cache_backend="default")
 
         # Should initialize cache backend
         self.assertIsNotNone(decorator.cache)
@@ -175,7 +175,7 @@ class TestSmartCacheDecorator(TestCase):
         """Test SmartCacheDecorator with custom cache backend"""
         from django.core.cache import caches
 
-        decorator = SmartCacheDecorator(cache_name="test_cache")
+        decorator = SmartCacheDecorator(cache_backend="test_cache")
 
         self.assertEqual(decorator.cache_name, "test_cache")
         self.assertEqual(decorator.cache, caches["test_cache"])

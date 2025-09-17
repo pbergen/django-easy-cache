@@ -51,8 +51,9 @@ class DjangoSmartCacheConfig(AppConfig):
             from .panels import SmartCacheDebugPanel
 
             # Add our panel to debug toolbar
-            if SmartCacheDebugPanel not in toolbar_settings.PANELS_DEFAULTS:
-                toolbar_settings.PANELS_DEFAULTS.append("django_smart_cache.panels.SmartCacheDebugPanel")
+            panel_path = "django_smart_cache.panels.SmartCacheDebugPanel"
+            if panel_path not in toolbar_settings.PANELS_DEFAULTS:
+                toolbar_settings.PANELS_DEFAULTS.append(panel_path)
         except ImportError:
             pass
 

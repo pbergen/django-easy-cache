@@ -40,7 +40,7 @@ class KeyGenerator:
         self.function_name = f"{func.__module__}.{func.__qualname__}"
         self.original_params = self._simple_params(func=func, args=args, kwargs=kwargs)
 
-        hashed_params = hashlib.sha256(self.original_params.encode()).hexdigest()[:8]
+        hashed_params = hashlib.sha256(self.original_params.encode()).hexdigest()[:16]
         key_parts = [self.function_name, hashed_params]
 
         # Add expiration date to key if provided (takes precedence over period)

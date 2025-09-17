@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta
 from typing import Optional
 
@@ -27,6 +28,19 @@ class CacheEntry(models.Model):
         null=True, blank=True, db_index=True, help_text="When this cache entry expires and should be considered invalid"
     )
 
+    # ✅ Cache current time to avoid multiple DB calls
+    _current_time_cache = None
+    _current_time_cache_timestamp = None
+
+    @classmethod
+    def _get_cached_current_time(cls):
+        """Get cached current time to avoid multiple timezone.now() calls"""
+        now = time.time()
+        if cls._current_time_cache is None or now - cls._current_time_cache_timestamp > 1:  # Cache for 1 second
+            cls._current_time_cache = timezone.now()
+            cls._current_time_cache_timestamp = now
+        return cls._current_time_cache
+
     class Meta:
         verbose_name = "Cache Entry"
         verbose_name_plural = "Cache Entries"
@@ -52,13 +66,23 @@ class CacheEntry(models.Model):
     def is_expired(self) -> bool:
         if not self.expires_at:
             return False
-        return self.expires_at < timezone.now()
+        return self.expires_at < self._get_cached_current_time()
 
     @property
-    def time_left(self) -> timedelta | None:
-        if not self.expires_at or self.is_expired:
-            return None
-        return self.expires_at - timezone.now()
+    def time_left(self) -> timedelta:
+        """Time remaining until cache expires"""
+        if not self.expires_at:
+            return timedelta(0)
+
+        current_time = self._get_cached_current_time()
+        if self.expires_at > current_time:
+            return self.expires_at - current_time
+        return timedelta(0)
+
+    @property
+    def time_left_seconds(self) -> float:
+        """Cached property for time left in seconds"""
+        return self.time_left.total_seconds()
 
 
 class CacheEventHistory(models.Model):

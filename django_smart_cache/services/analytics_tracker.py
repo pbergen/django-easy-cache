@@ -3,6 +3,8 @@ from datetime import timedelta
 
 from django.db import transaction
 
+from ..utils.validation import CacheInputValidator
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,8 +31,10 @@ class AnalyticsTracker:
         from django.utils import timezone
 
         try:
+            validated_cache_key = CacheInputValidator.validate_cache_key(cache_key)
+
             cache_entry, created = CacheEntry.objects.get_or_create(
-                cache_key=cache_key,
+                cache_key=validated_cache_key,
                 function_name=function_name,
                 defaults={
                     "cache_backend": cache_backend,
@@ -93,8 +97,10 @@ class AnalyticsTracker:
         from django.utils import timezone
 
         try:
+            validated_cache_key = CacheInputValidator.validate_cache_key(cache_key)
+
             cache_entry, created = CacheEntry.objects.get_or_create(
-                cache_key=cache_key,
+                cache_key=validated_cache_key,
                 function_name=function_name,
                 defaults={
                     "cache_backend": cache_backend,

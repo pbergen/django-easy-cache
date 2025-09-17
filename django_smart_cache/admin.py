@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.timezone import localtime
+from django.db.models import F, ExpressionWrapper, DurationField
+from django.utils import timezone
 
 from .models import CacheEntry, CacheEventHistory
 from .utils.format_time_left import format_time_left
@@ -31,6 +33,15 @@ class CacheEntryAdmin(admin.ModelAdmin):
         "hit_rate_display",
     ]
 
+    # ✅ Optimize queryset with annotations
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Annotate with calculated fields to avoid N+1 queries
+        current_time = timezone.now()
+        return qs.annotate(
+            time_remaining=ExpressionWrapper(F("expires_at") - current_time, output_field=DurationField())
+        ).select_related()  # Add if there are ForeignKeys
+
     @admin.display(description="Cache Key")
     def cache_key_short(self, obj):
         return obj.cache_key[:50] + "..." if len(obj.cache_key) > 50 else obj.cache_key
@@ -45,15 +56,28 @@ class CacheEntryAdmin(admin.ModelAdmin):
             return "-"
 
         expires_at_local = localtime(obj.expires_at)
-        if obj.is_expired:
+
+        # ✅ Use annotated field if available
+        if hasattr(obj, "time_remaining") and obj.time_remaining:
+            total_seconds = obj.time_remaining.total_seconds()
+            is_expired = total_seconds <= 0
+        else:
+            # Fallback to model property
+            is_expired = obj.is_expired
+            total_seconds = obj.time_left_seconds if not is_expired else 0
+
+        if is_expired:
             return format_html(
                 '<span style="color: red;">{} (expired)</span>', expires_at_local.strftime("%Y-%m-%d %H:%M")
             )
 
-        time_left_str = format_time_left(obj.time_left)
+        # Format time remaining using cached calculation
+        from datetime import timedelta
+
+        time_left_td = timedelta(seconds=total_seconds)
+        time_left_str = format_time_left(time_left_td)
 
         # Color based on remaining time
-        total_seconds = obj.time_left.total_seconds()
         if total_seconds > 86400:  # More than 1 day
             color = "green"
         elif total_seconds > 3600:  # More than 1 hour

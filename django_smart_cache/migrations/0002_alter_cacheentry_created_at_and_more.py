@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cacheentry',
             name='last_accessed',
-            field=models.DateTimeField(auto_now_add=True),
+            field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
             model_name='cacheeventhistory',

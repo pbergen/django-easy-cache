@@ -45,6 +45,22 @@ class BaseCacheDecorator:
         config: SmartCacheConfig instance
     """
 
+    @staticmethod
+    def _cache_template_response_callback(storage, cache_key: str, timeout: int):
+        """Static callback to avoid closure memory leaks"""
+
+        def callback(response):
+            try:
+                storage.set(cache_key, response, timeout)
+            except Exception as e:
+                # Log error but don't break rendering
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to cache template response: {e}")
+
+        return callback
+
     def __init__(self, timezone_name: str | None = None, cache_backend: str = "default") -> None:
         # Get configuration
         self.config = get_config()
@@ -129,6 +145,7 @@ class BaseCacheDecorator:
 
         if not self._cache_checked:
             if not self._health_check_cache_backend(self.cache):
+                # TODO: TRACK MISS AND ERROR
                 logger.error(f"Cache backend '{self.cache_name}' is unavailable.")
                 return func(*args, **kwargs)
             self._cache_checked = True
@@ -170,14 +187,15 @@ class BaseCacheDecorator:
 
         # CACHE MISS: Thundering Herd Protection
         lock_key = f"{cache_key}:lock"
-        if self.storage.add(lock_key, 1, timeout=15):  # Lock for 15s
+        if self.storage.add(lock_key, 1, timeout=15):
             try:
                 # I have the lock, I generate the value
                 result = func(*args, **kwargs)
 
-                # Handle TemplateResponse before caching
+                # ✅ Handle TemplateResponse caching without closure
                 if hasattr(result, "render") and callable(result.render):
-                    result.add_post_render_callback(lambda r: self.storage.set(cache_key, r, timeout))
+                    callback = self._cache_template_response_callback(self.storage, cache_key, timeout)
+                    result.add_post_render_callback(callback)
                 else:
                     self.storage.set(cache_key, result, timeout)
 
@@ -194,7 +212,6 @@ class BaseCacheDecorator:
                 )
                 return result
             finally:
-                # Release the lock
                 self.storage.delete(lock_key)
         else:
             # Another process has the lock, I wait and try again

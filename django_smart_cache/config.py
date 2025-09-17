@@ -1,5 +1,6 @@
 """Django Smart Cache Configuration System"""
 
+import copy
 import threading
 import logging
 from typing import Any
@@ -57,7 +58,7 @@ class SmartCacheConfig:
         smart_cache_settings = getattr(settings, "SMART_CACHE", {})
 
         # Merge with defaults
-        self._config = self.DEFAULT_CONFIG.copy()
+        self._config = copy.deepcopy(self.DEFAULT_CONFIG)
         self._deep_update(base_dict=self._config, update_dict=smart_cache_settings)
 
         # Validate configuration
@@ -115,6 +116,8 @@ class SmartCacheConfig:
             for k in keys[:-1]:
                 if k not in config:
                     config[k] = {}
+                elif not isinstance(config[k], dict):
+                    raise ValueError(f"Cannot set '{key}': intermediate key '{k}' is not a dictionary")
                 config = config[k]
 
             config[keys[-1]] = value
@@ -153,7 +156,17 @@ class SmartCacheConfig:
     def reload_config(self):
         """Reload configuration from Django settings"""
         with self._lock:
-            self._load_config()
+            # Backup current state
+            old_config = self._config.copy()
+            old_backends = self._cache_backends.copy()
+            try:
+                self._cache_backends.clear()
+                self._load_config()
+            except Exception as e:
+                # Restore old state on failure
+                self._config = old_config
+                self._cache_backends = old_backends
+                raise
 
     def get_full_config(self) -> dict[str, Any]:
         """Get full configuration (for debugging)"""

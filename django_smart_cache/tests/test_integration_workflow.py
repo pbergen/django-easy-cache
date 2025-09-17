@@ -296,7 +296,7 @@ class TestCompleteWorkflowIntegration(TestCase):
                 """Method that might fail"""
                 self.call_count += 1
 
-                if should_fail and self.call_count <= 1:
+                if should_fail:
                     raise ConnectionError("Service temporarily unavailable")
 
                 return {"success": True, "call_count": self.call_count, "timestamp": localtime().isoformat()}
