@@ -167,13 +167,15 @@ class TestBaseCacheDecorator(TestCase):
 
     def test_get_expiration_date_not_implemented(self):
         """Test that _get_expiration_date raises NotImplementedError"""
+        base_decorator = BaseCacheDecorator()
         with self.assertRaises(NotImplementedError):
-            self.decorator._get_expiration_date(datetime.now())
+            base_decorator._get_expiration_date(datetime.now())
 
     def test_calculate_timeout_not_implemented(self):
         """Test that _calculate_timeout raises NotImplementedError"""
+        base_decorator = BaseCacheDecorator()
         with self.assertRaises(NotImplementedError):
-            self.decorator._calculate_timeout(datetime.now())
+            base_decorator._calculate_timeout(datetime.now())
 
 
 class TestableBaseCacheDecorator(BaseCacheDecorator):

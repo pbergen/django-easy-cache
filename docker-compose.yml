@@ -4,10 +4,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        UV_INSTALL_DEV: "1"
     container_name: django-smart-cache-dev
     volumes:
       # Package source code (live reload)
       - .:/app
+      # Exclude container's .venv from host mount
+      - /app/.venv
       # Separate volume for dependencies (faster rebuilds)
       - uv_cache:/root/.cache/uv
     ports:

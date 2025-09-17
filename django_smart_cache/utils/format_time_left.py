@@ -60,7 +60,7 @@ def format_time_left(time_delta: timedelta | int | float) -> str:
             remaining_seconds %= unit_seconds
 
             # Use Django's ngettext for proper pluralization
-            unit_display = ngettext(f"%(count)d {unit_name}", f"%(count)d {unit_name}s", count) % {"count": count}
+            unit_display = ngettext("%(count)d" + unit_name, "%(count)d" + unit_name + "s", count) % {"count": count}
 
             result_parts.append(unit_display)
 

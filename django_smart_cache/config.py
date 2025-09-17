@@ -1,10 +1,13 @@
 """Django Smart Cache Configuration System"""
 
 import threading
-from typing import Dict, Any, Optional
+import logging
+from typing import Any
 from django.conf import settings
 from django.core.cache import caches
 from django.core.exceptions import ImproperlyConfigured
+
+logger = logging.getLogger(__name__)
 
 
 class SmartCacheConfig:
@@ -25,7 +28,7 @@ class SmartCacheConfig:
         "TRACKING": {
             "TRACK_CACHE_HITS": True,
             "TRACK_CACHE_MISSES": True,
-            "TRACK_PERFORMANCE": False,
+            "TRACK_PERFORMANCE": True,
         },
         "EVENTS": {
             "EVENT_CACHE_HITS": True,
@@ -37,13 +40,17 @@ class SmartCacheConfig:
     def __new__(cls):
         if cls._instance is None:
             with cls._lock:
-                cls._instance = super().__new__(cls)
-                cls._config = {}
-                cls._cache_backends = {}
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._config = {}
+                    cls._instance._cache_backends = {}
+                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):
-        self._load_config()
+        if not self._initialized:
+            self._load_config()
+            self._initialized = True
 
     def _load_config(self):
         """Load configuration from Django settings"""
@@ -83,6 +90,8 @@ class SmartCacheConfig:
             except Exception as e:
                 if backend_name == self._config["DEFAULT_BACKEND"]:
                     raise ImproperlyConfigured(f"Cannot initialize default cache backend '{backend_name}': {e}")
+                else:
+                    logger.warning(f"Failed to initialize cache backend '{backend_name}': {e}")
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value"""
@@ -99,15 +108,16 @@ class SmartCacheConfig:
 
     def set(self, key: str, value: Any) -> None:
         """Set configuration value"""
-        keys = key.split(".")
-        config = self._config
+        with self._lock:
+            keys = key.split(".")
+            config = self._config
 
-        for k in keys[:-1]:
-            if k not in config:
-                config[k] = {}
-            config = config[k]
+            for k in keys[:-1]:
+                if k not in config:
+                    config[k] = {}
+                config = config[k]
 
-        config[keys[-1]] = value
+            config[keys[-1]] = value
 
     def is_enabled(self, feature: str) -> bool:
         """Check if a feature is enabled"""

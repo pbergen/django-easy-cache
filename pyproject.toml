@@ -15,7 +15,7 @@ authors = [
 description = "Intelligent caching decorators for Django with real-time invalidation and dashboard optimization"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
@@ -26,6 +26,8 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
@@ -36,12 +38,12 @@ keywords = ["django", "cache", "caching", "performance", "realtime", "dashboard"
 dependencies = [
     "Django>=5.1",
     "cron-converter>=1.2.2",
-    "django-stubs>=5.2.2",
-    "django-stubs[compatible-mypy]~=5.2",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "django-stubs>=5.2.2",
+    "django-stubs[compatible-mypy]~=5.2",
     "pytest",
     "pytest-cov",
     "pytest-django",
@@ -98,8 +100,8 @@ exclude = [
 # Same as Black.
 line-length = 120
 
-# Assume Python 3.13.
-target-version = "py313"
+# Assume Python 3.11.
+target-version = "py311"
 
 [tool.ruff.lint]
 # Select all codes by default.
@@ -247,7 +249,7 @@ exclude = ["migrations/*.py"]
 [tool.mypy]
 mypy_path = ["$MYPY_CONFIG_FILE_DIR/apps"]
 plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
-python_version = "3.13"
+python_version = "3.11"
 strict = true
 namespace_packages = true           # Enables PEP 420 style namespace packages
 ignore_missing_imports = true       # Some external packages are not supported
