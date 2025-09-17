@@ -1,4 +1,5 @@
 """Unit tests for management commands"""
+
 import io
 from unittest.mock import Mock, patch, call
 from datetime import datetime, timedelta
@@ -37,7 +38,7 @@ class TestSmartCacheCommand(TestCase):
             hit_count=10,
             miss_count=2,
             access_count=12,
-            expires_at=now + timedelta(hours=1)
+            expires_at=now + timedelta(hours=1),
         )
 
         self.entry2 = CacheEntry.objects.create(
@@ -48,7 +49,7 @@ class TestSmartCacheCommand(TestCase):
             hit_count=5,
             miss_count=5,
             access_count=10,
-            expires_at=now - timedelta(hours=1)  # Expired
+            expires_at=now - timedelta(hours=1),  # Expired
         )
 
         # Create event history
@@ -57,7 +58,7 @@ class TestSmartCacheCommand(TestCase):
             event_type=CacheEventHistory.EventType.HIT,
             function_name="test.function1",
             cache_key="test_key_1",
-            duration_ms=10
+            duration_ms=10,
         )
 
         self.event2 = CacheEventHistory.objects.create(
@@ -65,80 +66,76 @@ class TestSmartCacheCommand(TestCase):
             event_type=CacheEventHistory.EventType.MISS,
             function_name="test.function2",
             cache_key="test_key_2",
-            duration_ms=150
+            duration_ms=150,
         )
 
     def test_command_help(self):
         """Test command help output"""
         out = io.StringIO()
-        call_command('smart_cache', '--help', stdout=out)
+        call_command("smart_cache", "--help", stdout=out)
         help_output = out.getvalue()
 
-        self.assertIn('Smart Cache management command', help_output)
-        self.assertIn('--stats', help_output)
-        self.assertIn('--clear-expired', help_output)
+        self.assertIn("Smart Cache management command", help_output)
+        self.assertIn("--stats", help_output)
+        self.assertIn("--clear-expired", help_output)
 
     def test_stats_subcommand_basic(self):
         """Test stats subcommand basic functionality"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', stdout=out)
+        call_command("smart_cache", "stats", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('Cache Statistics', output)
-        self.assertIn('Total Cache Entries:', output)
-        self.assertIn('Total Events:', output)
+        self.assertIn("Cache Statistics", output)
+        self.assertIn("Total Cache Entries:", output)
+        self.assertIn("Total Events:", output)
 
     def test_stats_subcommand_detailed_output(self):
         """Test stats subcommand with detailed output"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', stdout=out)
+        call_command("smart_cache", "stats", stdout=out)
         output = out.getvalue()
 
         # Check for specific statistics
-        self.assertIn('2', output)  # Total entries
-        self.assertIn('2', output)  # Total events
+        self.assertIn("2", output)  # Total entries
+        self.assertIn("2", output)  # Total events
 
         # Check for function-specific stats
-        self.assertIn('test.function1', output)
-        self.assertIn('test.function2', output)
+        self.assertIn("test.function1", output)
+        self.assertIn("test.function2", output)
 
     def test_stats_with_function_filter(self):
         """Test stats command with function name filter"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', '--function', 'test.function1', stdout=out)
+        call_command("smart_cache", "stats", "--function", "test.function1", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('test.function1', output)
-        self.assertNotIn('test.function2', output)
+        self.assertIn("test.function1", output)
+        self.assertNotIn("test.function2", output)
 
     def test_stats_with_backend_filter(self):
         """Test stats command with backend filter"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', '--backend', 'default', stdout=out)
+        call_command("smart_cache", "stats", "--backend", "default", stdout=out)
         output = out.getvalue()
 
         # Should include entries for default backend
-        self.assertIn('default', output)
+        self.assertIn("default", output)
 
     def test_clear_expired_subcommand(self):
         """Test clear-expired subcommand"""
         # Verify we have expired entries
-        expired_count = CacheEntry.objects.filter(
-            expires_at__lt=localtime()
-        ).count()
+        expired_count = CacheEntry.objects.filter(expires_at__lt=localtime()).count()
         self.assertGreater(expired_count, 0)
 
         out = io.StringIO()
-        call_command('smart_cache', 'clear-expired', stdout=out)
+        call_command("smart_cache", "clear-expired", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('Cleared', output)
-        self.assertIn('expired', output)
+        self.assertIn("Cleared", output)
+        self.assertIn("expired", output)
 
         # Verify expired entries were removed
-        remaining_expired = CacheEntry.objects.filter(
-            expires_at__lt=localtime()
-        ).count()
+        remaining_expired = CacheEntry.objects.filter(expires_at__lt=localtime()).count()
         self.assertEqual(remaining_expired, 0)
 
     def test_clear_expired_dry_run(self):
@@ -146,11 +143,11 @@ class TestSmartCacheCommand(TestCase):
         original_count = CacheEntry.objects.count()
 
         out = io.StringIO()
-        call_command('smart_cache', 'clear-expired', '--dry-run', stdout=out)
+        call_command("smart_cache", "clear-expired", "--dry-run", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('Would clear', output)
-        self.assertIn('expired', output)
+        self.assertIn("Would clear", output)
+        self.assertIn("expired", output)
 
         # Verify no entries were actually removed
         self.assertEqual(CacheEntry.objects.count(), original_count)
@@ -164,10 +161,10 @@ class TestSmartCacheCommand(TestCase):
         self.assertGreater(original_events, 0)
 
         out = io.StringIO()
-        call_command('smart_cache', 'clear-all', '--force', stdout=out)
+        call_command("smart_cache", "clear-all", "--force", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('Cleared all', output)
+        self.assertIn("Cleared all", output)
 
         # Verify all data was cleared
         self.assertEqual(CacheEntry.objects.count(), 0)
@@ -176,90 +173,91 @@ class TestSmartCacheCommand(TestCase):
     def test_clear_all_requires_force(self):
         """Test that clear-all requires --force flag"""
         with self.assertRaises(CommandError):
-            call_command('smart_cache', 'clear-all')
+            call_command("smart_cache", "clear-all")
 
     def test_clear_all_with_confirmation_prompt(self):
         """Test clear-all with user confirmation"""
-        with patch('builtins.input', return_value='yes'):
+        with patch("builtins.input", return_value="yes"):
             out = io.StringIO()
-            call_command('smart_cache', 'clear-all', stdout=out)
+            call_command("smart_cache", "clear-all", stdout=out)
             output = out.getvalue()
 
-            self.assertIn('Cleared all', output)
+            self.assertIn("Cleared all", output)
 
     def test_clear_all_with_negative_confirmation(self):
         """Test clear-all with user declining confirmation"""
         original_count = CacheEntry.objects.count()
 
-        with patch('builtins.input', return_value='no'):
+        with patch("builtins.input", return_value="no"):
             out = io.StringIO()
-            call_command('smart_cache', 'clear-all', stdout=out)
+            call_command("smart_cache", "clear-all", stdout=out)
             output = out.getvalue()
 
-            self.assertIn('Operation cancelled', output)
+            self.assertIn("Operation cancelled", output)
             self.assertEqual(CacheEntry.objects.count(), original_count)
 
     def test_export_subcommand(self):
         """Test export subcommand"""
         out = io.StringIO()
-        call_command('smart_cache', 'export', stdout=out)
+        call_command("smart_cache", "export", stdout=out)
         output = out.getvalue()
 
         # Should contain JSON data
-        self.assertIn('{', output)
-        self.assertIn('}', output)
-        self.assertIn('cache_entries', output)
-        self.assertIn('events', output)
+        self.assertIn("{", output)
+        self.assertIn("}", output)
+        self.assertIn("cache_entries", output)
+        self.assertIn("events", output)
 
     def test_export_with_function_filter(self):
         """Test export with function filter"""
         out = io.StringIO()
-        call_command('smart_cache', 'export', '--function', 'test.function1', stdout=out)
+        call_command("smart_cache", "export", "--function", "test.function1", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('test.function1', output)
-        self.assertNotIn('test.function2', output)
+        self.assertIn("test.function1", output)
+        self.assertNotIn("test.function2", output)
 
     def test_export_format_json(self):
         """Test export in JSON format"""
         out = io.StringIO()
-        call_command('smart_cache', 'export', '--format', 'json', stdout=out)
+        call_command("smart_cache", "export", "--format", "json", stdout=out)
         output = out.getvalue()
 
         import json
+
         try:
             data = json.loads(output)
-            self.assertIn('cache_entries', data)
-            self.assertIn('events', data)
+            self.assertIn("cache_entries", data)
+            self.assertIn("events", data)
         except json.JSONDecodeError:
             self.fail("Output is not valid JSON")
 
     def test_export_format_csv(self):
         """Test export in CSV format"""
         out = io.StringIO()
-        call_command('smart_cache', 'export', '--format', 'csv', stdout=out)
+        call_command("smart_cache", "export", "--format", "csv", stdout=out)
         output = out.getvalue()
 
         # Should contain CSV headers
-        self.assertIn('cache_key', output)
-        self.assertIn('function_name', output)
-        self.assertIn('hit_count', output)
+        self.assertIn("cache_key", output)
+        self.assertIn("function_name", output)
+        self.assertIn("hit_count", output)
 
     def test_invalid_subcommand(self):
         """Test handling of invalid subcommand"""
         with self.assertRaises(CommandError):
-            call_command('smart_cache', 'invalid_command')
+            call_command("smart_cache", "invalid_command")
 
     def test_command_with_verbosity_levels(self):
         """Test command with different verbosity levels"""
         # Test verbosity 0 (quiet)
         out = io.StringIO()
-        call_command('smart_cache', 'stats', verbosity=0, stdout=out)
+        call_command("smart_cache", "stats", verbosity=0, stdout=out)
         quiet_output = out.getvalue()
 
         # Test verbosity 2 (verbose)
         out = io.StringIO()
-        call_command('smart_cache', 'stats', verbosity=2, stdout=out)
+        call_command("smart_cache", "stats", verbosity=2, stdout=out)
         verbose_output = out.getvalue()
 
         self.assertLess(len(quiet_output), len(verbose_output))
@@ -271,38 +269,41 @@ class TestSmartCacheCommand(TestCase):
 
         out = io.StringIO()
         call_command(
-            'smart_cache', 'stats',
-            '--since', yesterday.strftime('%Y-%m-%d'),
-            '--until', tomorrow.strftime('%Y-%m-%d'),
-            stdout=out
+            "smart_cache",
+            "stats",
+            "--since",
+            yesterday.strftime("%Y-%m-%d"),
+            "--until",
+            tomorrow.strftime("%Y-%m-%d"),
+            stdout=out,
         )
         output = out.getvalue()
 
-        self.assertIn('Cache Statistics', output)
+        self.assertIn("Cache Statistics", output)
 
     def test_command_error_handling(self):
         """Test command error handling"""
         # Test with invalid date format
         with self.assertRaises(CommandError):
-            call_command('smart_cache', 'stats', '--since', 'invalid-date')
+            call_command("smart_cache", "stats", "--since", "invalid-date")
 
     def test_performance_stats_calculation(self):
         """Test performance statistics calculation"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', '--performance', stdout=out)
+        call_command("smart_cache", "stats", "--performance", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('Performance Statistics', output)
-        self.assertIn('Average Duration', output)
+        self.assertIn("Performance Statistics", output)
+        self.assertIn("Average Duration", output)
 
     def test_hit_rate_calculation_in_stats(self):
         """Test hit rate calculation in stats output"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', stdout=out)
+        call_command("smart_cache", "stats", stdout=out)
         output = out.getvalue()
 
         # Should show hit rates for functions
-        self.assertIn('%', output)  # Hit rate percentage
+        self.assertIn("%", output)  # Hit rate percentage
 
     def test_command_with_no_data(self):
         """Test command behavior with no cache data"""
@@ -311,28 +312,21 @@ class TestSmartCacheCommand(TestCase):
         CacheEventHistory.objects.all().delete()
 
         out = io.StringIO()
-        call_command('smart_cache', 'stats', stdout=out)
+        call_command("smart_cache", "stats", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('No cache entries', output)
+        self.assertIn("No cache entries", output)
 
     def test_clear_by_function_pattern(self):
         """Test clearing entries by function pattern"""
         out = io.StringIO()
-        call_command(
-            'smart_cache', 'clear',
-            '--function-pattern', 'test.function1',
-            '--force',
-            stdout=out
-        )
+        call_command("smart_cache", "clear", "--function-pattern", "test.function1", "--force", stdout=out)
         output = out.getvalue()
 
-        self.assertIn('Cleared', output)
+        self.assertIn("Cleared", output)
 
         # Verify only matching entries were cleared
-        remaining = CacheEntry.objects.filter(
-            function_name__contains='test.function1'
-        ).count()
+        remaining = CacheEntry.objects.filter(function_name__contains="test.function1").count()
         self.assertEqual(remaining, 0)
 
     def test_command_direct_instantiation(self):
@@ -340,12 +334,12 @@ class TestSmartCacheCommand(TestCase):
         command = Command()
 
         # Test that command has required methods
-        self.assertTrue(hasattr(command, 'handle'))
-        self.assertTrue(hasattr(command, 'add_arguments'))
+        self.assertTrue(hasattr(command, "handle"))
+        self.assertTrue(hasattr(command, "add_arguments"))
 
         # Test help text
         self.assertIsNotNone(command.help)
-        self.assertIn('Smart Cache', command.help)
+        self.assertIn("Smart Cache", command.help)
 
     def test_command_argument_parsing(self):
         """Test command argument parsing"""
@@ -362,30 +356,30 @@ class TestSmartCacheCommand(TestCase):
         except Exception as e:
             self.fail(f"add_arguments raised an exception: {e}")
 
-    @patch('django_smart_cache.management.commands.smart_cache.Command.handle_stats')
+    @patch("django_smart_cache.management.commands.smart_cache.Command.handle_stats")
     def test_subcommand_routing(self, mock_handle_stats):
         """Test that subcommands are routed correctly"""
-        call_command('smart_cache', 'stats')
+        call_command("smart_cache", "stats")
         mock_handle_stats.assert_called_once()
 
     def test_output_formatting(self):
         """Test output formatting consistency"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', stdout=out)
+        call_command("smart_cache", "stats", stdout=out)
         output = out.getvalue()
 
         # Check for consistent formatting
-        lines = output.split('\n')
+        lines = output.split("\n")
 
         # Should have headers and separators
-        has_headers = any('=' in line for line in lines)
+        has_headers = any("=" in line for line in lines)
         self.assertTrue(has_headers)
 
     def test_command_with_color_output(self):
         """Test command with colored output support"""
         out = io.StringIO()
-        call_command('smart_cache', 'stats', '--color', stdout=out)
+        call_command("smart_cache", "stats", "--color", stdout=out)
         output = out.getvalue()
 
         # Should still produce valid output even if colors aren't visible in test
-        self.assertIn('Cache Statistics', output)
+        self.assertIn("Cache Statistics", output)

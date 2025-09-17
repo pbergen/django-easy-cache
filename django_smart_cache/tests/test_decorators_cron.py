@@ -1,4 +1,5 @@
 """Unit tests for CronDecorator"""
+
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
@@ -14,11 +15,11 @@ class TestCronDecorator(TestCase):
     def test_init_valid_cron_expression(self):
         """Test initialization with valid cron expressions"""
         valid_expressions = [
-            "*/5 * * * *",     # Every 5 minutes
-            "0 */2 * * *",     # Every 2 hours
-            "30 14 * * *",     # Daily at 14:30
-            "0 0 * * 0",       # Weekly on Sunday
-            "0 0 1 * *",       # Monthly on 1st
+            "*/5 * * * *",  # Every 5 minutes
+            "0 */2 * * *",  # Every 2 hours
+            "30 14 * * *",  # Daily at 14:30
+            "0 0 * * 0",  # Weekly on Sunday
+            "0 0 1 * *",  # Monthly on 1st
         ]
 
         for expression in valid_expressions:
@@ -28,13 +29,13 @@ class TestCronDecorator(TestCase):
     def test_init_invalid_cron_expression(self):
         """Test initialization with invalid cron expressions"""
         invalid_expressions = [
-            "invalid",         # Not a cron expression
-            "* * * *",         # Missing field
-            "60 * * * *",      # Invalid minute
-            "* 25 * * *",      # Invalid hour
-            "* * 32 * *",      # Invalid day of month
-            "* * * 13 *",      # Invalid month
-            "* * * * 8",       # Invalid day of week
+            "invalid",  # Not a cron expression
+            "* * * *",  # Missing field
+            "60 * * * *",  # Invalid minute
+            "* 25 * * *",  # Invalid hour
+            "* * 32 * *",  # Invalid day of month
+            "* * * 13 *",  # Invalid month
+            "* * * * 8",  # Invalid day of week
         ]
 
         for expression in invalid_expressions:
@@ -43,13 +44,10 @@ class TestCronDecorator(TestCase):
                 # Force evaluation by calling _parse_cron_expression
                 decorator._parse_cron_expression(expression, datetime.now())
 
-    @override_settings(TIME_ZONE='UTC')
+    @override_settings(TIME_ZONE="UTC")
     def test_init_with_timezone(self):
         """Test initialization with custom timezone"""
-        decorator = CronDecorator(
-            cron_expression="*/5 * * * *",
-            timezone_name="Europe/Berlin"
-        )
+        decorator = CronDecorator(cron_expression="*/5 * * * *", timezone_name="Europe/Berlin")
         self.assertEqual(decorator.timezone_name, "Europe/Berlin")
 
     def test_parse_cron_expression_success(self):
@@ -59,7 +57,7 @@ class TestCronDecorator(TestCase):
 
         # Should return a schedule object
         self.assertIsNotNone(schedule)
-        self.assertTrue(hasattr(schedule, 'next'))
+        self.assertTrue(hasattr(schedule, "next"))
 
     def test_parse_cron_expression_failure(self):
         """Test cron expression parsing failure"""
@@ -68,7 +66,7 @@ class TestCronDecorator(TestCase):
         with self.assertRaises(InvalidCronExpression):
             CronDecorator._parse_cron_expression("invalid_cron", now)
 
-    @patch('django_smart_cache.decorators.cron.Cron')
+    @patch("django_smart_cache.decorators.cron.Cron")
     def test_get_expiration_date(self, mock_cron_class):
         """Test expiration date calculation"""
         # Mock the cron schedule
@@ -91,7 +89,7 @@ class TestCronDecorator(TestCase):
         mock_cron.schedule.assert_called_with(now)
         mock_schedule.next.assert_called_once()
 
-    @patch('django_smart_cache.decorators.cron.Cron')
+    @patch("django_smart_cache.decorators.cron.Cron")
     def test_calculate_timeout(self, mock_cron_class):
         """Test timeout calculation"""
         # Mock the cron schedule
@@ -137,6 +135,7 @@ class TestCronDecorator(TestCase):
 
     def test_docstring_preserved(self):
         """Test that function docstring is preserved after decoration"""
+
         @CronDecorator(cron_expression="0 */1 * * *")
         def documented_function():
             """This is a test function."""
@@ -146,6 +145,7 @@ class TestCronDecorator(TestCase):
 
     def test_function_name_preserved(self):
         """Test that function name is preserved after decoration"""
+
         @CronDecorator(cron_expression="0 */1 * * *")
         def named_function():
             return "test"
@@ -154,12 +154,13 @@ class TestCronDecorator(TestCase):
 
     def test_decorator_attributes_attached(self):
         """Test that decorator attaches its attributes to wrapped function"""
+
         @CronDecorator(cron_expression="0 */1 * * *")
         def test_function():
             return "test"
 
-        self.assertTrue(hasattr(test_function, '_smart_cache_decorator'))
-        self.assertTrue(hasattr(test_function, '_smart_cache_original'))
+        self.assertTrue(hasattr(test_function, "_smart_cache_decorator"))
+        self.assertTrue(hasattr(test_function, "_smart_cache_original"))
         self.assertIsInstance(test_function._smart_cache_decorator, CronDecorator)
 
     def test_inheritance_from_base_decorator(self):
@@ -170,11 +171,11 @@ class TestCronDecorator(TestCase):
         self.assertIsInstance(decorator, BaseCacheDecorator)
 
         # Check that base class attributes are available
-        self.assertTrue(hasattr(decorator, 'config'))
-        self.assertTrue(hasattr(decorator, 'cache'))
-        self.assertTrue(hasattr(decorator, 'key_generator'))
-        self.assertTrue(hasattr(decorator, 'storage'))
-        self.assertTrue(hasattr(decorator, 'analytics'))
+        self.assertTrue(hasattr(decorator, "config"))
+        self.assertTrue(hasattr(decorator, "cache"))
+        self.assertTrue(hasattr(decorator, "key_generator"))
+        self.assertTrue(hasattr(decorator, "storage"))
+        self.assertTrue(hasattr(decorator, "analytics"))
 
     def test_common_cron_expressions(self):
         """Test common cron expressions work correctly"""
@@ -194,7 +195,7 @@ class TestCronDecorator(TestCase):
                 decorator = CronDecorator(cron_expression=expression)
                 self.assertEqual(decorator.cron_expression, expression)
 
-    @patch('django_smart_cache.decorators.cron.Cron')
+    @patch("django_smart_cache.decorators.cron.Cron")
     def test_edge_case_next_execution_same_time(self, mock_cron_class):
         """Test edge case where next execution is the current time"""
         # Mock the cron schedule to return current time
@@ -214,7 +215,7 @@ class TestCronDecorator(TestCase):
         self.assertEqual(expiration, now)
         self.assertEqual(timeout, 0)  # No timeout needed
 
-    @patch('django_smart_cache.decorators.cron.Cron')
+    @patch("django_smart_cache.decorators.cron.Cron")
     def test_error_handling_in_parse_cron(self, mock_cron_class):
         """Test error handling in cron expression parsing"""
         # Mock Cron to raise an exception
@@ -225,6 +226,7 @@ class TestCronDecorator(TestCase):
 
     def test_multiple_decorators_different_expressions(self):
         """Test multiple functions with different cron expressions"""
+
         @CronDecorator(cron_expression="*/5 * * * *")
         def function_5_min():
             return "5min"
@@ -241,11 +243,5 @@ class TestCronDecorator(TestCase):
         self.assertEqual(result2, "hourly")
 
         # Check they have different cron expressions
-        self.assertEqual(
-            function_5_min._smart_cache_decorator.cron_expression,
-            "*/5 * * * *"
-        )
-        self.assertEqual(
-            function_hourly._smart_cache_decorator.cron_expression,
-            "0 */1 * * *"
-        )
+        self.assertEqual(function_5_min._smart_cache_decorator.cron_expression, "*/5 * * * *")
+        self.assertEqual(function_hourly._smart_cache_decorator.cron_expression, "0 */1 * * *")

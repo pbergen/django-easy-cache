@@ -4,6 +4,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class StorageHandler:
     """Simple cache storage operations"""
 
@@ -31,7 +32,6 @@ class StorageHandler:
 
         return False
 
-
     def add(self, key: str, value: Any, timeout: int) -> bool:
         """Set value in cache only if it does not already exist."""
         if self.cache is None:
@@ -48,7 +48,7 @@ class StorageHandler:
             return False
         try:
             # gibt es in manchen backends nicht, daher absichern
-            if hasattr(self.cache, 'delete'):
+            if hasattr(self.cache, "delete"):
                 return self.cache.delete(key)
             return False
         except Exception as e:

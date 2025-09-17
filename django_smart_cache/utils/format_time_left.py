@@ -1,13 +1,14 @@
 """
 Utilities for formatting time-related information.
 """
+
 from datetime import timedelta
 from typing import Union
 
 from django.utils.translation import ngettext
 
 
-def format_time_left(time_delta: Union[timedelta, int, float]) -> str:
+def format_time_left(time_delta: timedelta | int | float) -> str:
     """
     Format a time delta into a human-readable string.
 
@@ -37,21 +38,17 @@ def format_time_left(time_delta: Union[timedelta, int, float]) -> str:
         return "expired"
 
     if total_seconds < 60:
-        return ngettext(
-            "%(count)d second",
-            "%(count)d seconds",
-            total_seconds
-        ) % {'count': total_seconds}
+        return ngettext("%(count)d second", "%(count)d seconds", total_seconds) % {"count": total_seconds}
 
     # Time units in seconds (most efficient calculation)
     units = [
-        ('year', 31536000),    # 365 * 24 * 60 * 60
-        ('month', 2628000),    # ~30.44 * 24 * 60 * 60 (more accurate)
-        ('week', 604800),      # 7 * 24 * 60 * 60
-        ('day', 86400),        # 24 * 60 * 60
-        ('hour', 3600),        # 60 * 60
-        ('minute', 60),
-        ('second', 1)
+        ("year", 31536000),  # 365 * 24 * 60 * 60
+        ("month", 2628000),  # ~30.44 * 24 * 60 * 60 (more accurate)
+        ("week", 604800),  # 7 * 24 * 60 * 60
+        ("day", 86400),  # 24 * 60 * 60
+        ("hour", 3600),  # 60 * 60
+        ("minute", 60),
+        ("second", 1),
     ]
 
     result_parts = []
@@ -63,11 +60,7 @@ def format_time_left(time_delta: Union[timedelta, int, float]) -> str:
             remaining_seconds %= unit_seconds
 
             # Use Django's ngettext for proper pluralization
-            unit_display = ngettext(
-                f"%(count)d {unit_name}",
-                f"%(count)d {unit_name}s",
-                count
-            ) % {'count': count}
+            unit_display = ngettext(f"%(count)d {unit_name}", f"%(count)d {unit_name}s", count) % {"count": count}
 
             result_parts.append(unit_display)
 
@@ -76,5 +69,3 @@ def format_time_left(time_delta: Union[timedelta, int, float]) -> str:
                 break
 
     return " ".join(result_parts) if result_parts else "less than 1 minute"
-
-

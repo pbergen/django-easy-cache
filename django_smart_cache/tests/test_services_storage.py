@@ -1,4 +1,5 @@
 """Unit tests for StorageHandler service"""
+
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
@@ -40,7 +41,7 @@ class TestStorageHandler(TestCase):
         self.assertIsNone(result)
         self.mock_cache.get.assert_called_once_with("test_key")
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_get_exception_handling(self, mock_logger):
         """Test get operation handles cache exceptions gracefully"""
         # Mock cache exception
@@ -55,7 +56,7 @@ class TestStorageHandler(TestCase):
         mock_logger.warning.assert_called_once()
         self.assertIn("Cache get failed", mock_logger.warning.call_args[0][0])
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_get_connection_error(self, mock_logger):
         """Test get operation with connection error"""
         # Mock connection error
@@ -66,7 +67,7 @@ class TestStorageHandler(TestCase):
         self.assertIsNone(result)
         mock_logger.warning.assert_called_once()
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_get_timeout_error(self, mock_logger):
         """Test get operation with timeout error"""
         # Mock timeout error
@@ -97,7 +98,7 @@ class TestStorageHandler(TestCase):
         self.assertFalse(result)
         self.mock_cache.set.assert_called_once_with("test_key", "test_value", 3600)
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_set_exception_handling(self, mock_logger):
         """Test set operation handles cache exceptions gracefully"""
         # Mock cache exception
@@ -112,7 +113,7 @@ class TestStorageHandler(TestCase):
         mock_logger.warning.assert_called_once()
         self.assertIn("Cache set failed", mock_logger.warning.call_args[0][0])
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_set_connection_error(self, mock_logger):
         """Test set operation with connection error"""
         # Mock connection error
@@ -123,7 +124,7 @@ class TestStorageHandler(TestCase):
         self.assertFalse(result)
         mock_logger.warning.assert_called_once()
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_set_timeout_error(self, mock_logger):
         """Test set operation with timeout error"""
         # Mock timeout error
@@ -286,7 +287,7 @@ class TestStorageHandler(TestCase):
         # Both instances should use the same cache backend
         self.assertIs(storage1.cache, storage2.cache)
 
-    @patch('django_smart_cache.services.storage_handler.logger')
+    @patch("django_smart_cache.services.storage_handler.logger")
     def test_logging_includes_key_information(self, mock_logger):
         """Test that error logging includes key information for debugging"""
         test_key = "test_key_for_debugging"

@@ -1,4 +1,5 @@
 """Unit tests for Django models"""
+
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -18,10 +19,7 @@ class TestCacheEntry(TestCase):
     def test_create_cache_entry(self):
         """Test creating a basic CacheEntry"""
         entry = CacheEntry.objects.create(
-            cache_key="test_key",
-            function_name="test_function",
-            cache_backend="default",
-            timeout=3600
+            cache_key="test_key", function_name="test_function", cache_backend="default", timeout=3600
         )
 
         self.assertEqual(entry.cache_key, "test_key")
@@ -47,7 +45,7 @@ class TestCacheEntry(TestCase):
             expires_at=expires_at,
             hit_count=5,
             miss_count=2,
-            access_count=7
+            access_count=7,
         )
 
         self.assertEqual(entry.original_params, "param1=value1&param2=value2")
@@ -63,7 +61,7 @@ class TestCacheEntry(TestCase):
         entry = CacheEntry.objects.create(
             cache_key="very_long_cache_key_that_should_be_truncated_in_str_representation",
             function_name="test.module.function_name",
-            timeout=3600
+            timeout=3600,
         )
 
         str_repr = str(entry)
@@ -74,11 +72,7 @@ class TestCacheEntry(TestCase):
     def test_hit_rate_property(self):
         """Test hit_rate property calculation"""
         # Test with no hits or misses
-        entry = CacheEntry.objects.create(
-            cache_key="test_key",
-            function_name="test_function",
-            timeout=3600
-        )
+        entry = CacheEntry.objects.create(cache_key="test_key", function_name="test_function", timeout=3600)
         self.assertEqual(entry.hit_rate, 0)
 
         # Test with only hits
@@ -104,11 +98,7 @@ class TestCacheEntry(TestCase):
     def test_is_expired_property(self):
         """Test is_expired property"""
         # Test with no expiration date
-        entry = CacheEntry.objects.create(
-            cache_key="test_key",
-            function_name="test_function",
-            timeout=3600
-        )
+        entry = CacheEntry.objects.create(cache_key="test_key", function_name="test_function", timeout=3600)
         self.assertFalse(entry.is_expired)
 
         # Test with future expiration
@@ -126,11 +116,7 @@ class TestCacheEntry(TestCase):
     def test_time_left_property(self):
         """Test time_left property"""
         # Test with no expiration date
-        entry = CacheEntry.objects.create(
-            cache_key="test_key",
-            function_name="test_function",
-            timeout=3600
-        )
+        entry = CacheEntry.objects.create(cache_key="test_key", function_name="test_function", timeout=3600)
         self.assertIsNone(entry.time_left)
 
         # Test with expired entry
@@ -147,7 +133,7 @@ class TestCacheEntry(TestCase):
         time_left = entry.time_left
         self.assertIsInstance(time_left, timedelta)
         self.assertGreater(time_left.total_seconds(), 3500)  # Close to 1 hour
-        self.assertLess(time_left.total_seconds(), 3700)     # But not exactly due to execution time
+        self.assertLess(time_left.total_seconds(), 3700)  # But not exactly due to execution time
 
     def test_cache_entry_indexes(self):
         """Test that database indexes are properly defined"""
@@ -159,24 +145,16 @@ class TestCacheEntry(TestCase):
         index_fields = [list(index.fields) for index in meta_indexes]
 
         # Verify some key indexes exist
-        self.assertIn(['function_name', 'created_at'], index_fields)
-        self.assertIn(['cache_key', 'last_accessed'], index_fields)
-        self.assertIn(['expires_at'], index_fields)
+        self.assertIn(["function_name", "created_at"], index_fields)
+        self.assertIn(["cache_key", "last_accessed"], index_fields)
+        self.assertIn(["expires_at"], index_fields)
 
     def test_cache_entry_unique_together_behavior(self):
         """Test behavior with multiple entries for same cache key"""
         # Create two entries with same cache key but different functions
-        entry1 = CacheEntry.objects.create(
-            cache_key="same_key",
-            function_name="function1",
-            timeout=3600
-        )
+        entry1 = CacheEntry.objects.create(cache_key="same_key", function_name="function1", timeout=3600)
 
-        entry2 = CacheEntry.objects.create(
-            cache_key="same_key",
-            function_name="function2",
-            timeout=3600
-        )
+        entry2 = CacheEntry.objects.create(cache_key="same_key", function_name="function2", timeout=3600)
 
         # Both should exist since they have different function names
         self.assertEqual(CacheEntry.objects.filter(cache_key="same_key").count(), 2)
@@ -197,7 +175,7 @@ class TestCacheEventHistory(TestCase):
             event_type=CacheEventHistory.EventType.HIT,
             cache_backend="default",
             function_name="test_function",
-            cache_key="test_key"
+            cache_key="test_key",
         )
 
         self.assertEqual(event.event_name, "cache_hit")
@@ -214,21 +192,21 @@ class TestCacheEventHistory(TestCase):
             event_name="test_hit",
             event_type=CacheEventHistory.EventType.HIT,
             function_name="test_function",
-            cache_key="test_key"
+            cache_key="test_key",
         )
 
         miss_event = CacheEventHistory.objects.create(
             event_name="test_miss",
             event_type=CacheEventHistory.EventType.MISS,
             function_name="test_function",
-            cache_key="test_key"
+            cache_key="test_key",
         )
 
         error_event = CacheEventHistory.objects.create(
             event_name="test_error",
             event_type=CacheEventHistory.EventType.ERROR,
             function_name="test_function",
-            cache_key="test_key"
+            cache_key="test_key",
         )
 
         self.assertEqual(hit_event.event_type, "hit")
@@ -244,7 +222,7 @@ class TestCacheEventHistory(TestCase):
             function_name="test.module.function",
             cache_key="complex_cache_key",
             duration_ms=150,
-            original_params="param1=value1&param2=value2"
+            original_params="param1=value1&param2=value2",
         )
 
         self.assertEqual(event.cache_backend, "redis")
@@ -254,14 +232,14 @@ class TestCacheEventHistory(TestCase):
     def test_event_ordering(self):
         """Test that events are ordered by occurred_at descending"""
         # Create events with specific times
-        with patch('django_smart_cache.models.localtime') as mock_localtime:
+        with patch("django_smart_cache.models.localtime") as mock_localtime:
             # First event (older)
             mock_localtime.return_value = datetime(2025, 9, 15, 10, 0, 0)
             event1 = CacheEventHistory.objects.create(
                 event_name="first_event",
                 event_type=CacheEventHistory.EventType.HIT,
                 function_name="test_function",
-                cache_key="test_key1"
+                cache_key="test_key1",
             )
 
             # Second event (newer)
@@ -270,7 +248,7 @@ class TestCacheEventHistory(TestCase):
                 event_name="second_event",
                 event_type=CacheEventHistory.EventType.MISS,
                 function_name="test_function",
-                cache_key="test_key2"
+                cache_key="test_key2",
             )
 
         # Query should return newest first due to Meta ordering
@@ -287,8 +265,8 @@ class TestCacheEventHistory(TestCase):
         index_fields = [list(index.fields) for index in meta_indexes]
 
         # Verify key indexes exist
-        self.assertIn(['event_name', 'occurred_at'], index_fields)
-        self.assertIn(['function_name', 'event_type', 'occurred_at'], index_fields)
+        self.assertIn(["event_name", "occurred_at"], index_fields)
+        self.assertIn(["function_name", "event_type", "occurred_at"], index_fields)
 
     def test_event_filtering_by_type(self):
         """Test filtering events by type"""
@@ -297,21 +275,21 @@ class TestCacheEventHistory(TestCase):
             event_name="hit1",
             event_type=CacheEventHistory.EventType.HIT,
             function_name="test_function",
-            cache_key="key1"
+            cache_key="key1",
         )
 
         CacheEventHistory.objects.create(
             event_name="miss1",
             event_type=CacheEventHistory.EventType.MISS,
             function_name="test_function",
-            cache_key="key2"
+            cache_key="key2",
         )
 
         CacheEventHistory.objects.create(
             event_name="error1",
             event_type=CacheEventHistory.EventType.ERROR,
             function_name="test_function",
-            cache_key="key3"
+            cache_key="key3",
         )
 
         # Test filtering
@@ -331,24 +309,18 @@ class TestCacheEventHistory(TestCase):
         """Test filtering events by function name"""
         # Create events for different functions
         CacheEventHistory.objects.create(
-            event_name="event1",
-            event_type=CacheEventHistory.EventType.HIT,
-            function_name="function1",
-            cache_key="key1"
+            event_name="event1", event_type=CacheEventHistory.EventType.HIT, function_name="function1", cache_key="key1"
         )
 
         CacheEventHistory.objects.create(
             event_name="event2",
             event_type=CacheEventHistory.EventType.MISS,
             function_name="function2",
-            cache_key="key2"
+            cache_key="key2",
         )
 
         CacheEventHistory.objects.create(
-            event_name="event3",
-            event_type=CacheEventHistory.EventType.HIT,
-            function_name="function1",
-            cache_key="key3"
+            event_name="event3", event_type=CacheEventHistory.EventType.HIT, function_name="function1", cache_key="key3"
         )
 
         # Filter by function name
@@ -375,7 +347,7 @@ class TestCacheEventHistory(TestCase):
                     event_type=CacheEventHistory.EventType.HIT,
                     function_name="test_function",
                     cache_key=f"key_{input_duration}",
-                    duration_ms=input_duration
+                    duration_ms=input_duration,
                 )
 
                 self.assertEqual(event.duration_ms, expected_duration)
@@ -390,7 +362,7 @@ class TestCacheEventHistory(TestCase):
             event_type=CacheEventHistory.EventType.MISS,
             function_name="test_function",
             cache_key=large_cache_key,
-            original_params=large_params
+            original_params=large_params,
         )
 
         self.assertEqual(len(event.original_params), len(large_params))

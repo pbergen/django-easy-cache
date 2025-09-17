@@ -1,4 +1,5 @@
 """Complete workflow integration tests"""
+
 import time
 from datetime import datetime, timedelta
 from unittest.mock import patch
@@ -37,10 +38,10 @@ class TestCompleteWorkflowIntegration(TestCase):
                 """Get daily user statistics - cached until 2 AM"""
                 time.sleep(0.005)  # Simulate DB query
                 return {
-                    'user_id': self.user_id,
-                    'page_views': 150,
-                    'session_duration': 3600,
-                    'last_login': localtime().isoformat()
+                    "user_id": self.user_id,
+                    "page_views": 150,
+                    "session_duration": 3600,
+                    "last_login": localtime().isoformat(),
                 }
 
             @smart_cache.cron_based(cron_expression="*/15 * * * *")
@@ -48,17 +49,17 @@ class TestCompleteWorkflowIntegration(TestCase):
                 """Get real-time metrics - updated every 15 minutes"""
                 time.sleep(0.008)  # Simulate API call
                 return {
-                    'user_id': self.user_id,
-                    'active_sessions': 3,
-                    'current_activity': 'browsing',
-                    'last_updated': localtime().isoformat()
+                    "user_id": self.user_id,
+                    "active_sessions": 3,
+                    "current_activity": "browsing",
+                    "last_updated": localtime().isoformat(),
                 }
 
         # Step 2: Define Django views that use the service
         @smart_cache.time_based(invalidate_at="12:00")
         def user_dashboard_view(request):
             """Django view that aggregates cached data"""
-            user_id = int(request.GET.get('user_id', 1))
+            user_id = int(request.GET.get("user_id", 1))
 
             # Use the service
             service = UserAnalyticsService(user_id)
@@ -68,15 +69,14 @@ class TestCompleteWorkflowIntegration(TestCase):
             real_time_metrics = service.get_real_time_metrics()
 
             # Aggregate response
-            return JsonResponse({
-                'user_id': user_id,
-                'dashboard_data': {
-                    'daily': daily_stats,
-                    'real_time': real_time_metrics
-                },
-                'generated_at': localtime().isoformat(),
-                'cache_info': 'Multiple cache layers active'
-            })
+            return JsonResponse(
+                {
+                    "user_id": user_id,
+                    "dashboard_data": {"daily": daily_stats, "real_time": real_time_metrics},
+                    "generated_at": localtime().isoformat(),
+                    "cache_info": "Multiple cache layers active",
+                }
+            )
 
         @smart_cache.cron_based(cron_expression="0 */1 * * *")
         def hourly_report_view(request):
@@ -87,30 +87,29 @@ class TestCompleteWorkflowIntegration(TestCase):
             for user_id in user_ids:
                 service = UserAnalyticsService(user_id)
                 stats = service.get_daily_stats()
-                reports.append({
-                    'user_id': user_id,
-                    'summary': f"User {user_id} had {stats['page_views']} page views"
-                })
+                reports.append({"user_id": user_id, "summary": f"User {user_id} had {stats['page_views']} page views"})
 
-            return JsonResponse({
-                'report_type': 'hourly',
-                'users_processed': len(user_ids),
-                'reports': reports,
-                'generated_at': localtime().isoformat()
-            })
+            return JsonResponse(
+                {
+                    "report_type": "hourly",
+                    "users_processed": len(user_ids),
+                    "reports": reports,
+                    "generated_at": localtime().isoformat(),
+                }
+            )
 
         # Step 3: Simulate real application usage
 
         # First user dashboard request
-        request1 = self.factory.get('/dashboard/?user_id=1')
+        request1 = self.factory.get("/dashboard/?user_id=1")
         response1 = user_dashboard_view(request1)
         self.assertEqual(response1.status_code, 200)
 
         data1 = response1.json()
-        self.assertEqual(data1['user_id'], 1)
-        self.assertIn('dashboard_data', data1)
-        self.assertIn('daily', data1['dashboard_data'])
-        self.assertIn('real_time', data1['dashboard_data'])
+        self.assertEqual(data1["user_id"], 1)
+        self.assertIn("dashboard_data", data1)
+        self.assertIn("daily", data1["dashboard_data"])
+        self.assertIn("real_time", data1["dashboard_data"])
 
         # Second identical request - should hit multiple cache layers
         start_time = time.time()
@@ -121,21 +120,21 @@ class TestCompleteWorkflowIntegration(TestCase):
         self.assertEqual(data1, data2)  # Should be identical due to caching
 
         # Third request for different user - should use some cached data
-        request2 = self.factory.get('/dashboard/?user_id=2')
+        request2 = self.factory.get("/dashboard/?user_id=2")
         response3 = user_dashboard_view(request2)
         data3 = response3.json()
 
-        self.assertNotEqual(data1['user_id'], data3['user_id'])
-        self.assertEqual(data3['user_id'], 2)
+        self.assertNotEqual(data1["user_id"], data3["user_id"])
+        self.assertEqual(data3["user_id"], 2)
 
         # Generate hourly report
-        report_request = self.factory.get('/hourly-report/')
+        report_request = self.factory.get("/hourly-report/")
         report_response = hourly_report_view(report_request)
         report_data = report_response.json()
 
-        self.assertEqual(report_data['report_type'], 'hourly')
-        self.assertEqual(report_data['users_processed'], 3)
-        self.assertEqual(len(report_data['reports']), 3)
+        self.assertEqual(report_data["report_type"], "hourly")
+        self.assertEqual(report_data["users_processed"], 3)
+        self.assertEqual(len(report_data["reports"]), 3)
 
         # Verify cache entries were created at multiple levels
         cache_entries = CacheEntry.objects.all()
@@ -143,10 +142,10 @@ class TestCompleteWorkflowIntegration(TestCase):
 
         # Check different function types are cached
         function_names = [entry.function_name for entry in cache_entries]
-        self.assertTrue(any('get_daily_stats' in name for name in function_names))
-        self.assertTrue(any('get_real_time_metrics' in name for name in function_names))
-        self.assertTrue(any('user_dashboard_view' in name for name in function_names))
-        self.assertTrue(any('hourly_report_view' in name for name in function_names))
+        self.assertTrue(any("get_daily_stats" in name for name in function_names))
+        self.assertTrue(any("get_real_time_metrics" in name for name in function_names))
+        self.assertTrue(any("user_dashboard_view" in name for name in function_names))
+        self.assertTrue(any("hourly_report_view" in name for name in function_names))
 
         # Verify analytics tracking
         events = CacheEventHistory.objects.all()
@@ -174,11 +173,7 @@ class TestCompleteWorkflowIntegration(TestCase):
             def extract_raw_data(self):
                 """Stage 1: Extract raw data - cached daily"""
                 time.sleep(0.01)  # Simulate data extraction
-                return {
-                    'dataset_id': self.dataset_id,
-                    'raw_records': 1000,
-                    'extracted_at': localtime().isoformat()
-                }
+                return {"dataset_id": self.dataset_id, "raw_records": 1000, "extracted_at": localtime().isoformat()}
 
             @smart_cache.cron_based(cron_expression="0 */6 * * *")
             def transform_data(self):
@@ -187,10 +182,10 @@ class TestCompleteWorkflowIntegration(TestCase):
                 time.sleep(0.015)  # Simulate transformation
 
                 return {
-                    'dataset_id': self.dataset_id,
-                    'source_records': raw_data['raw_records'],
-                    'transformed_records': raw_data['raw_records'] * 0.95,  # Some filtering
-                    'transformed_at': localtime().isoformat()
+                    "dataset_id": self.dataset_id,
+                    "source_records": raw_data["raw_records"],
+                    "transformed_records": raw_data["raw_records"] * 0.95,  # Some filtering
+                    "transformed_at": localtime().isoformat(),
                 }
 
             @smart_cache.time_based(invalidate_at="08:00")
@@ -200,19 +195,15 @@ class TestCompleteWorkflowIntegration(TestCase):
                 time.sleep(0.02)  # Simulate ML processing
 
                 return {
-                    'dataset_id': self.dataset_id,
-                    'source_records': transformed_data['transformed_records'],
-                    'insights': {
-                        'trend': 'increasing',
-                        'confidence': 0.87,
-                        'anomalies_detected': 2
-                    },
-                    'generated_at': localtime().isoformat()
+                    "dataset_id": self.dataset_id,
+                    "source_records": transformed_data["transformed_records"],
+                    "insights": {"trend": "increasing", "confidence": 0.87, "anomalies_detected": 2},
+                    "generated_at": localtime().isoformat(),
                 }
 
         # Create pipeline instances
-        pipeline1 = DataPipeline('sales_data')
-        pipeline2 = DataPipeline('user_behavior')
+        pipeline1 = DataPipeline("sales_data")
+        pipeline2 = DataPipeline("user_behavior")
 
         # Test cascading cache behavior
         start_time = time.time()
@@ -232,20 +223,20 @@ class TestCompleteWorkflowIntegration(TestCase):
 
         # Test with different dataset
         insights2 = pipeline2.generate_insights()
-        self.assertNotEqual(insights1_first['dataset_id'], insights2['dataset_id'])
+        self.assertNotEqual(insights1_first["dataset_id"], insights2["dataset_id"])
 
         # Verify cache entries for all pipeline stages
         cache_entries = CacheEntry.objects.all()
         function_names = [entry.function_name for entry in cache_entries]
 
-        self.assertTrue(any('extract_raw_data' in name for name in function_names))
-        self.assertTrue(any('transform_data' in name for name in function_names))
-        self.assertTrue(any('generate_insights' in name for name in function_names))
+        self.assertTrue(any("extract_raw_data" in name for name in function_names))
+        self.assertTrue(any("transform_data" in name for name in function_names))
+        self.assertTrue(any("generate_insights" in name for name in function_names))
 
         # Verify that intermediate stages were also cached and reused
-        extract_entries = [e for e in cache_entries if 'extract_raw_data' in e.function_name]
-        transform_entries = [e for e in cache_entries if 'transform_data' in e.function_name]
-        insights_entries = [e for e in cache_entries if 'generate_insights' in e.function_name]
+        extract_entries = [e for e in cache_entries if "extract_raw_data" in e.function_name]
+        transform_entries = [e for e in cache_entries if "transform_data" in e.function_name]
+        insights_entries = [e for e in cache_entries if "generate_insights" in e.function_name]
 
         # Each stage should have entries for both datasets
         self.assertGreaterEqual(len(extract_entries), 2)
@@ -260,20 +251,14 @@ class TestCompleteWorkflowIntegration(TestCase):
 
             @smart_cache.time_based(invalidate_at="23:59")
             def get_daily_summary(self):
-                return {
-                    'summary': 'daily data',
-                    'generated_at': localtime().isoformat()
-                }
+                return {"summary": "daily data", "generated_at": localtime().isoformat()}
 
         class CronBasedService:
             """Service to test cron-based invalidation"""
 
             @smart_cache.cron_based(cron_expression="*/30 * * * *")
             def get_frequent_updates(self):
-                return {
-                    'updates': 'frequent data',
-                    'generated_at': localtime().isoformat()
-                }
+                return {"updates": "frequent data", "generated_at": localtime().isoformat()}
 
         time_service = TimeBasedService()
         cron_service = CronBasedService()
@@ -314,11 +299,7 @@ class TestCompleteWorkflowIntegration(TestCase):
                 if should_fail and self.call_count <= 1:
                     raise ConnectionError("Service temporarily unavailable")
 
-                return {
-                    'success': True,
-                    'call_count': self.call_count,
-                    'timestamp': localtime().isoformat()
-                }
+                return {"success": True, "call_count": self.call_count, "timestamp": localtime().isoformat()}
 
         @smart_cache.cron_based(cron_expression="*/10 * * * *")
         def robust_view(request):
@@ -327,19 +308,14 @@ class TestCompleteWorkflowIntegration(TestCase):
 
             try:
                 data = service.unreliable_method(should_fail=False)
-                return JsonResponse({
-                    'status': 'success',
-                    'data': data
-                })
+                return JsonResponse({"status": "success", "data": data})
             except Exception as e:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': str(e),
-                    'fallback_data': {'timestamp': localtime().isoformat()}
-                })
+                return JsonResponse(
+                    {"status": "error", "message": str(e), "fallback_data": {"timestamp": localtime().isoformat()}}
+                )
 
         service = UnreliableService()
-        request = self.factory.get('/robust/')
+        request = self.factory.get("/robust/")
 
         # Test successful operation (cached)
         response1 = robust_view(request)
@@ -349,7 +325,7 @@ class TestCompleteWorkflowIntegration(TestCase):
         data2 = response2.json()
 
         self.assertEqual(data1, data2)  # Should be cached
-        self.assertEqual(data1['status'], 'success')
+        self.assertEqual(data1["status"], "success")
 
         # Test that successful operations are cached properly
         success_result1 = service.unreliable_method(should_fail=False)
@@ -372,33 +348,35 @@ class TestCompleteWorkflowIntegration(TestCase):
                 """Expensive operation that benefits from caching"""
                 time.sleep(0.01)  # Simulate expensive computation
                 return {
-                    'category': category,
-                    'content': f'Popular items for {category}',
-                    'computed_at': localtime().isoformat()
+                    "category": category,
+                    "content": f"Popular items for {category}",
+                    "computed_at": localtime().isoformat(),
                 }
 
         @smart_cache.time_based(invalidate_at="06:00")
         def popular_content_api(request):
             """API endpoint that serves popular content"""
-            category = request.GET.get('category', 'general')
+            category = request.GET.get("category", "general")
 
             service = HighTrafficService()
             content_data = service.get_popular_content(category)
 
-            return JsonResponse({
-                'api_version': '1.0',
-                'category': category,
-                'content': content_data,
-                'served_at': localtime().isoformat()
-            })
+            return JsonResponse(
+                {
+                    "api_version": "1.0",
+                    "category": category,
+                    "content": content_data,
+                    "served_at": localtime().isoformat(),
+                }
+            )
 
         # Simulate multiple concurrent requests
-        categories = ['tech', 'sports', 'news', 'tech', 'sports', 'tech']  # Some repeats
+        categories = ["tech", "sports", "news", "tech", "sports", "tech"]  # Some repeats
         responses = []
         total_time = 0
 
         for category in categories:
-            request = self.factory.get(f'/api/popular/?category={category}')
+            request = self.factory.get(f"/api/popular/?category={category}")
 
             start_time = time.time()
             response = popular_content_api(request)
@@ -408,13 +386,13 @@ class TestCompleteWorkflowIntegration(TestCase):
             responses.append((category, response.json(), call_time))
 
         # Verify that repeated categories returned cached data
-        tech_responses = [r for r in responses if r[0] == 'tech']
+        tech_responses = [r for r in responses if r[0] == "tech"]
         self.assertGreater(len(tech_responses), 1)
 
         # All tech responses should have identical content data
-        first_tech_content = tech_responses[0][1]['content']
+        first_tech_content = tech_responses[0][1]["content"]
         for _, response_data, _ in tech_responses[1:]:
-            self.assertEqual(response_data['content'], first_tech_content)
+            self.assertEqual(response_data["content"], first_tech_content)
 
         # Later tech responses should be faster (cached)
         tech_times = [t for _, _, t in tech_responses]
@@ -446,38 +424,30 @@ class TestCompleteWorkflowIntegration(TestCase):
             def get_daily_config(self):
                 """Configuration that changes daily at midnight"""
                 return {
-                    'service_id': self.service_id,
-                    'config': {'max_requests': 1000, 'timeout': 30},
-                    'valid_until': 'midnight'
+                    "service_id": self.service_id,
+                    "config": {"max_requests": 1000, "timeout": 30},
+                    "valid_until": "midnight",
                 }
 
             @smart_cache.cron_based(cron_expression="*/10 * * * *")
             def get_live_status(self):
                 """Status that updates every 10 minutes"""
-                return {
-                    'service_id': self.service_id,
-                    'status': 'operational',
-                    'updated_every': '10 minutes'
-                }
+                return {"service_id": self.service_id, "status": "operational", "updated_every": "10 minutes"}
 
             @smart_cache.time_based(invalidate_at="12:00")
             def get_business_hours_info(self):
                 """Info that updates at noon"""
                 config = self.get_daily_config()  # Uses cached daily config
-                status = self.get_live_status()   # Uses cached live status
+                status = self.get_live_status()  # Uses cached live status
 
                 return {
-                    'service_id': self.service_id,
-                    'business_info': {
-                        'config': config,
-                        'current_status': status,
-                        'business_hours': '9 AM - 5 PM'
-                    },
-                    'combined_at': localtime().isoformat()
+                    "service_id": self.service_id,
+                    "business_info": {"config": config, "current_status": status, "business_hours": "9 AM - 5 PM"},
+                    "combined_at": localtime().isoformat(),
                 }
 
         # Test the mixed strategy workflow
-        service = MixedCacheService('payment_gateway')
+        service = MixedCacheService("payment_gateway")
 
         # First call - should execute all methods
         start_time = time.time()
@@ -509,9 +479,9 @@ class TestCompleteWorkflowIntegration(TestCase):
         self.assertGreater(cache_entries.count(), 2)
 
         function_names = [entry.function_name for entry in cache_entries]
-        self.assertTrue(any('get_daily_config' in name for name in function_names))
-        self.assertTrue(any('get_live_status' in name for name in function_names))
-        self.assertTrue(any('get_business_hours_info' in name for name in function_names))
+        self.assertTrue(any("get_daily_config" in name for name in function_names))
+        self.assertTrue(any("get_live_status" in name for name in function_names))
+        self.assertTrue(any("get_business_hours_info" in name for name in function_names))
 
         # Verify that different invalidation strategies are used
         time_based_entries = []

@@ -1,4 +1,5 @@
 """Unit tests for utility functions"""
+
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -54,11 +55,11 @@ class TestFormatDurationMs(TestCase):
     def test_minute_durations(self):
         """Test format_duration_ms with minute-level durations"""
         test_cases = [
-            (60000, "1m 0s"),        # 1 minute
-            (90000, "1m 30s"),       # 1.5 minutes
-            (120000, "2m 0s"),       # 2 minutes
-            (150000, "2m 30s"),      # 2.5 minutes
-            (3599000, "59m 59s"),    # Just under 1 hour
+            (60000, "1m 0s"),  # 1 minute
+            (90000, "1m 30s"),  # 1.5 minutes
+            (120000, "2m 0s"),  # 2 minutes
+            (150000, "2m 30s"),  # 2.5 minutes
+            (3599000, "59m 59s"),  # Just under 1 hour
         ]
 
         for duration, expected in test_cases:
@@ -69,11 +70,11 @@ class TestFormatDurationMs(TestCase):
     def test_hour_durations(self):
         """Test format_duration_ms with hour-level durations"""
         test_cases = [
-            (3600000, "1h 0m"),      # 1 hour
-            (5400000, "1h 30m"),     # 1.5 hours
-            (7200000, "2h 0m"),      # 2 hours
-            (9000000, "2h 30m"),     # 2.5 hours
-            (86399000, "23h 59m"),   # Just under 1 day
+            (3600000, "1h 0m"),  # 1 hour
+            (5400000, "1h 30m"),  # 1.5 hours
+            (7200000, "2h 0m"),  # 2 hours
+            (9000000, "2h 30m"),  # 2.5 hours
+            (86399000, "23h 59m"),  # Just under 1 day
         ]
 
         for duration, expected in test_cases:
@@ -84,10 +85,10 @@ class TestFormatDurationMs(TestCase):
     def test_day_durations(self):
         """Test format_duration_ms with day-level durations"""
         test_cases = [
-            (86400000, "1d 0h"),     # 1 day
-            (90000000, "1d 1h"),     # 1 day 1 hour
-            (172800000, "2d 0h"),    # 2 days
-            (604800000, "7d 0h"),    # 1 week
+            (86400000, "1d 0h"),  # 1 day
+            (90000000, "1d 1h"),  # 1 day 1 hour
+            (172800000, "2d 0h"),  # 2 days
+            (604800000, "7d 0h"),  # 1 week
         ]
 
         for duration, expected in test_cases:
@@ -98,11 +99,11 @@ class TestFormatDurationMs(TestCase):
     def test_float_durations(self):
         """Test format_duration_ms with float inputs"""
         test_cases = [
-            (1.5, "1ms"),           # Rounded down
-            (1.9, "1ms"),           # Rounded down
-            (2.1, "2ms"),           # Rounded down
-            (1000.5, "1.00s"),      # Seconds with decimals
-            (1500.7, "1.50s"),      # Seconds with decimals
+            (1.5, "1ms"),  # Rounded down
+            (1.9, "1ms"),  # Rounded down
+            (2.1, "2ms"),  # Rounded down
+            (1000.5, "1.00s"),  # Seconds with decimals
+            (1500.7, "1.50s"),  # Seconds with decimals
         ]
 
         for duration, expected in test_cases:
@@ -126,12 +127,12 @@ class TestFormatDurationMs(TestCase):
     def test_edge_case_boundary_values(self):
         """Test format_duration_ms with boundary values"""
         test_cases = [
-            (999, "999ms"),      # Just under 1 second
-            (1000, "1.00s"),     # Exactly 1 second
-            (1001, "1.00s"),     # Just over 1 second
-            (59999, "60.00s"),   # Just under 1 minute
-            (60000, "1m 0s"),    # Exactly 1 minute
-            (60001, "1m 0s"),    # Just over 1 minute
+            (999, "999ms"),  # Just under 1 second
+            (1000, "1.00s"),  # Exactly 1 second
+            (1001, "1.00s"),  # Just over 1 second
+            (59999, "60.00s"),  # Just under 1 minute
+            (60000, "1m 0s"),  # Exactly 1 minute
+            (60001, "1m 0s"),  # Just over 1 minute
         ]
 
         for duration, expected in test_cases:
@@ -215,7 +216,7 @@ class TestFormatTimeLeft(TestCase):
             (timedelta(days=1, hours=2, minutes=3, seconds=4), "1d 2h"),
             (timedelta(hours=5, minutes=30, seconds=45), "5h 30m"),
             (timedelta(minutes=90, seconds=30), "1h 30m"),  # 90 minutes = 1h 30m
-            (timedelta(seconds=3661), "1h 1m"),             # 3661 seconds = 1h 1m 1s, but shows 1h 1m
+            (timedelta(seconds=3661), "1h 1m"),  # 3661 seconds = 1h 1m 1s, but shows 1h 1m
         ]
 
         for td, expected in test_cases:
@@ -303,12 +304,12 @@ class TestUtilityFunctionsIntegration(TestCase):
         """Test format_duration_ms with realistic performance measurements"""
         # Simulate real cache operation durations
         realistic_durations = [
-            (0.5, "0ms"),        # Very fast cache hit
-            (2.3, "2ms"),        # Fast cache hit
-            (15.7, "15ms"),      # Normal cache hit
-            (150.2, "150ms"),    # Cache miss with DB query
-            (1250.8, "1.25s"),   # Slow DB operation
-            (5000.0, "5.00s"),   # Very slow operation
+            (0.5, "0ms"),  # Very fast cache hit
+            (2.3, "2ms"),  # Fast cache hit
+            (15.7, "15ms"),  # Normal cache hit
+            (150.2, "150ms"),  # Cache miss with DB query
+            (1250.8, "1.25s"),  # Slow DB operation
+            (5000.0, "5.00s"),  # Very slow operation
         ]
 
         for duration_ms, expected in realistic_durations:
@@ -320,12 +321,12 @@ class TestUtilityFunctionsIntegration(TestCase):
         """Test format_time_left with realistic cache timeout scenarios"""
         # Simulate real cache timeout scenarios
         realistic_timeouts = [
-            (timedelta(seconds=30), "30s"),          # Short cache
-            (timedelta(minutes=5), "5m 0s"),         # Medium cache
-            (timedelta(minutes=30), "30m 0s"),       # Long cache
-            (timedelta(hours=1), "1h 0m"),           # Hourly cache
-            (timedelta(hours=24), "1d 0h"),          # Daily cache
-            (timedelta(days=7), "7d 0h"),            # Weekly cache
+            (timedelta(seconds=30), "30s"),  # Short cache
+            (timedelta(minutes=5), "5m 0s"),  # Medium cache
+            (timedelta(minutes=30), "30m 0s"),  # Long cache
+            (timedelta(hours=1), "1h 0m"),  # Hourly cache
+            (timedelta(hours=24), "1d 0h"),  # Daily cache
+            (timedelta(days=7), "7d 0h"),  # Weekly cache
         ]
 
         for timeout, expected in realistic_timeouts:
@@ -396,10 +397,10 @@ class TestUtilityFunctionsIntegration(TestCase):
         time_result = format_time_left(timedelta(minutes=2, seconds=30))
 
         # Should not contain newlines or tabs
-        self.assertNotIn('\n', duration_result)
-        self.assertNotIn('\t', duration_result)
-        self.assertNotIn('\n', time_result)
-        self.assertNotIn('\t', time_result)
+        self.assertNotIn("\n", duration_result)
+        self.assertNotIn("\t", duration_result)
+        self.assertNotIn("\n", time_result)
+        self.assertNotIn("\t", time_result)
 
         # Should be reasonably short for display purposes
         self.assertLess(len(duration_result), 50)

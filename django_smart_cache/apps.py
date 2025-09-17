@@ -4,9 +4,9 @@ from django.core.checks import Error, register
 
 
 class DjangoSmartCacheConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'django_smart_cache'
-    verbose_name = 'Django Smart Cache'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "django_smart_cache"
+    verbose_name = "Django Smart Cache"
 
     def ready(self):
         """Initialize Django Smart Cache when Django starts"""
@@ -15,8 +15,8 @@ class DjangoSmartCacheConfig(AppConfig):
 
         # Initialize cache analytics if enabled
         # if self._is_analytics_enabled():
-            # from .analytics import CacheAnalytics
-            # CacheAnalytics.initialize()
+        # from .analytics import CacheAnalytics
+        # CacheAnalytics.initialize()
 
         # Setup debug toolbar integration
         if self._is_debug_toolbar_enabled():
@@ -28,21 +28,21 @@ class DjangoSmartCacheConfig(AppConfig):
 
     def _is_analytics_enabled(self) -> bool:
         """Check if cache analytics are enabled"""
-        smart_cache_settings = getattr(settings, 'SMART_CACHE', {})
-        return smart_cache_settings.get('ANALYTICS_ENABLED', False)
+        smart_cache_settings = getattr(settings, "SMART_CACHE", {})
+        return smart_cache_settings.get("ANALYTICS_ENABLED", False)
 
     def _is_debug_toolbar_enabled(self) -> bool:
         """Check if debug toolbar integration is enabled"""
-        if 'debug_toolbar' not in settings.INSTALLED_APPS:
+        if "debug_toolbar" not in settings.INSTALLED_APPS:
             return False
 
-        smart_cache_settings = getattr(settings, 'SMART_CACHE', {})
-        return smart_cache_settings.get('DEBUG_TOOLBAR_INTEGRATION', False)
+        smart_cache_settings = getattr(settings, "SMART_CACHE", {})
+        return smart_cache_settings.get("DEBUG_TOOLBAR_INTEGRATION", False)
 
     def _is_realtime_enabled(self) -> bool:
         """Check if real-time features are enabled"""
-        smart_cache_settings = getattr(settings, 'SMART_CACHE', {})
-        return smart_cache_settings.get('REALTIME', {}).get('ENABLED', False)
+        smart_cache_settings = getattr(settings, "SMART_CACHE", {})
+        return smart_cache_settings.get("REALTIME", {}).get("ENABLED", False)
 
     def _setup_debug_toolbar(self):
         """Setup debug toolbar integration"""
@@ -52,9 +52,7 @@ class DjangoSmartCacheConfig(AppConfig):
 
             # Add our panel to debug toolbar
             if SmartCacheDebugPanel not in toolbar_settings.PANELS_DEFAULTS:
-                toolbar_settings.PANELS_DEFAULTS.append(
-                    'django_smart_cache.panels.SmartCacheDebugPanel'
-                )
+                toolbar_settings.PANELS_DEFAULTS.append("django_smart_cache.panels.SmartCacheDebugPanel")
         except ImportError:
             pass
 
@@ -77,38 +75,38 @@ def check_smart_cache_settings(app_configs, **kwargs):
     """Django system check for Smart Cache configuration"""
     errors = []
 
-    smart_cache_settings = getattr(settings, 'SMART_CACHE', {})
+    smart_cache_settings = getattr(settings, "SMART_CACHE", {})
 
     # Check if caches are configured
-    if not hasattr(settings, 'CACHES') or not settings.CACHES:
+    if not hasattr(settings, "CACHES") or not settings.CACHES:
         errors.append(
             Error(
-                'No cache backends configured',
-                hint='Configure at least one cache backend in settings.CACHES',
-                id='django_smart_cache.E001',
+                "No cache backends configured",
+                hint="Configure at least one cache backend in settings.CACHES",
+                id="django_smart_cache.E001",
             )
         )
 
     # Check default cache backend
-    default_backend = smart_cache_settings.get('DEFAULT_BACKEND', 'default')
+    default_backend = smart_cache_settings.get("DEFAULT_BACKEND", "default")
     if default_backend not in settings.CACHES:
         errors.append(
             Error(
                 f'Smart Cache default backend "{default_backend}" not found in CACHES',
                 hint=f'Add "{default_backend}" to settings.CACHES or change SMART_CACHE.DEFAULT_BACKEND',
-                id='django_smart_cache.E002',
+                id="django_smart_cache.E002",
             )
         )
 
     # Check real-time configuration
-    realtime_config = smart_cache_settings.get('REALTIME', {})
-    if realtime_config.get('ENABLED', False):
-        if 'channels' not in settings.INSTALLED_APPS:
+    realtime_config = smart_cache_settings.get("REALTIME", {})
+    if realtime_config.get("ENABLED", False):
+        if "channels" not in settings.INSTALLED_APPS:
             errors.append(
                 Error(
-                    'Real-time features enabled but channels not in INSTALLED_APPS',
+                    "Real-time features enabled but channels not in INSTALLED_APPS",
                     hint='Add "channels" to INSTALLED_APPS or disable real-time features',
-                    id='django_smart_cache.E003',
+                    id="django_smart_cache.E003",
                 )
             )
 
