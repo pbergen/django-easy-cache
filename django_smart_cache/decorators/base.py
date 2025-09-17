@@ -2,7 +2,8 @@ import logging
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Optional, Any, Callable
+from typing import Optional, Any
+from collections.abc import Callable
 
 from django.conf import settings
 from django.utils import timezone
@@ -44,15 +45,11 @@ class BaseCacheDecorator:
         config: SmartCacheConfig instance
     """
 
-    def __init__(
-        self,
-        timezone_name: str | None = None,
-        cache_backend: str = "default"
-    ) -> None:
+    def __init__(self, timezone_name: str | None = None, cache_backend: str = "default") -> None:
         # Get configuration
         self.config = get_config()
         self.timezone_name = timezone_name or settings.TIME_ZONE
-        self.cache_name = cache_backend or self.config.get('CACHE_BACKEND')
+        self.cache_name = cache_backend or self.config.get("CACHE_BACKEND")
         self._cache_checked = False
 
         # Initialize components with separated concerns
@@ -62,7 +59,7 @@ class BaseCacheDecorator:
             logger.error(f"Cache backend '{cache_backend}' not available. Caching will be disabled for this decorator.")
 
         # Separated components
-        self.key_generator = KeyGenerator(prefix=self.config.get('KEY_PREFIX'))
+        self.key_generator = KeyGenerator(prefix=self.config.get("KEY_PREFIX"))
         self.storage = StorageHandler(self.cache)
         self.analytics = AnalyticsTracker(self.config)
 
@@ -141,8 +138,9 @@ class BaseCacheDecorator:
 
         # Generate cache key with expiration date
         expiration_date = self._get_expiration_date(now)
-        cache_key = self.key_generator.generate_key(func=func, args=args, kwargs=kwargs,
-                                                    expiration_date=expiration_date)
+        cache_key = self.key_generator.generate_key(
+            func=func, args=args, kwargs=kwargs, expiration_date=expiration_date
+        )
         # Calculate timeout
         timeout = self._calculate_timeout(now)
 
@@ -158,12 +156,16 @@ class BaseCacheDecorator:
 
         if cached_result is not None:
             # Track analytics using dedicated component
-            if self.config.should_track('PERFORMANCE'):
+            if self.config.should_track("PERFORMANCE"):
                 execution_time = (time.time() - start_time) * 1000
-            self.analytics.track_hit(cache_backend=self.cache_name, cache_key=cache_key,
-                                     function_name=self.key_generator.function_name,
-                                     original_params=self.key_generator.original_params, timeout=timeout,
-                                     execution_time_ms=execution_time)
+            self.analytics.track_hit(
+                cache_backend=self.cache_name,
+                cache_key=cache_key,
+                function_name=self.key_generator.function_name,
+                original_params=self.key_generator.original_params,
+                timeout=timeout,
+                execution_time_ms=execution_time,
+            )
             return cached_result
 
         # CACHE MISS: Thundering Herd Protection
@@ -175,27 +177,29 @@ class BaseCacheDecorator:
 
                 # Handle TemplateResponse before caching
                 if hasattr(result, "render") and callable(result.render):
-                    result.add_post_render_callback(
-                        lambda r: self.storage.set(cache_key, r, timeout)
-                    )
+                    result.add_post_render_callback(lambda r: self.storage.set(cache_key, r, timeout))
                 else:
                     self.storage.set(cache_key, result, timeout)
 
-                if self.config.should_track('PERFORMANCE'):
+                if self.config.should_track("PERFORMANCE"):
                     execution_time = (time.time() - start_time) * 1000
                 # Track cache miss
-                self.analytics.track_miss(cache_backend=self.cache_name, cache_key=cache_key,
-                                          function_name=self.key_generator.function_name,
-                                          original_params=self.key_generator.original_params, timeout=timeout,
-                                          execution_time_ms=execution_time)
+                self.analytics.track_miss(
+                    cache_backend=self.cache_name,
+                    cache_key=cache_key,
+                    function_name=self.key_generator.function_name,
+                    original_params=self.key_generator.original_params,
+                    timeout=timeout,
+                    execution_time_ms=execution_time,
+                )
                 return result
             finally:
                 # Release the lock
                 self.storage.delete(lock_key)
         else:
             # Another process has the lock, I wait and try again
-            for _ in range(5): # Retry 5 times
-                time.sleep(0.1) # Wait 100ms
+            for _ in range(5):  # Retry 5 times
+                time.sleep(0.1)  # Wait 100ms
                 cached_result = self.storage.get(cache_key)
                 if cached_result is not None:
                     # The other process finished, great!
@@ -208,7 +212,6 @@ class BaseCacheDecorator:
     def _get_expiration_date(self, now: datetime) -> datetime:
         """Calculate expiration date for cache key - must be implemented in subclass"""
         raise NotImplementedError
-
 
     def _calculate_timeout(self, now: datetime) -> int:
         """Must be implemented in subclass"""

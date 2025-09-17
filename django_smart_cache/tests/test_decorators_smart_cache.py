@@ -1,4 +1,5 @@
 """Unit tests for SmartCacheDecorator"""
+
 from unittest.mock import Mock, patch
 
 from django.test import TestCase, override_settings
@@ -20,10 +21,7 @@ class TestSmartCacheDecorator(TestCase):
 
     def test_init_custom_values(self):
         """Test initialization with custom values"""
-        decorator = SmartCacheDecorator(
-            key_template="{function_name}_{custom}",
-            cache_name="custom_cache"
-        )
+        decorator = SmartCacheDecorator(key_template="{function_name}_{custom}", cache_name="custom_cache")
         self.assertEqual(decorator.key_template, "{function_name}_{custom}")
         self.assertEqual(decorator.cache_name, "custom_cache")
 
@@ -35,20 +33,14 @@ class TestSmartCacheDecorator(TestCase):
 
     def test_time_based_with_timezone(self):
         """Test time_based with custom timezone"""
-        decorator = SmartCacheDecorator.time_based(
-            invalidate_at="14:30",
-            timezone_name="Europe/Berlin"
-        )
+        decorator = SmartCacheDecorator.time_based(invalidate_at="14:30", timezone_name="Europe/Berlin")
         self.assertIsInstance(decorator, TimeDecorator)
         self.assertEqual(decorator.invalidate_at, "14:30")
         self.assertEqual(decorator.timezone_name, "Europe/Berlin")
 
     def test_time_based_with_kwargs(self):
         """Test time_based with additional kwargs"""
-        decorator = SmartCacheDecorator.time_based(
-            invalidate_at="14:30",
-            cache_backend="test_cache"
-        )
+        decorator = SmartCacheDecorator.time_based(invalidate_at="14:30", cache_backend="test_cache")
         self.assertIsInstance(decorator, TimeDecorator)
         self.assertEqual(decorator.invalidate_at, "14:30")
         self.assertEqual(decorator.cache_name, "test_cache")
@@ -61,20 +53,14 @@ class TestSmartCacheDecorator(TestCase):
 
     def test_cron_based_with_timezone(self):
         """Test cron_based with custom timezone"""
-        decorator = SmartCacheDecorator.cron_based(
-            cron_expression="*/5 * * * *",
-            timezone_name="America/New_York"
-        )
+        decorator = SmartCacheDecorator.cron_based(cron_expression="*/5 * * * *", timezone_name="America/New_York")
         self.assertIsInstance(decorator, CronDecorator)
         self.assertEqual(decorator.cron_expression, "*/5 * * * *")
         self.assertEqual(decorator.timezone_name, "America/New_York")
 
     def test_cron_based_with_kwargs(self):
         """Test cron_based with additional kwargs"""
-        decorator = SmartCacheDecorator.cron_based(
-            cron_expression="*/5 * * * *",
-            cache_backend="custom_cache"
-        )
+        decorator = SmartCacheDecorator.cron_based(cron_expression="*/5 * * * *", cache_backend="custom_cache")
         self.assertIsInstance(decorator, CronDecorator)
         self.assertEqual(decorator.cron_expression, "*/5 * * * *")
         self.assertEqual(decorator.cache_name, "custom_cache")
@@ -98,7 +84,7 @@ class TestSmartCacheDecorator(TestCase):
         self.assertEqual(result, "test_result")
 
         # Check decorator attributes
-        self.assertTrue(hasattr(test_function, '_smart_cache_decorator'))
+        self.assertTrue(hasattr(test_function, "_smart_cache_decorator"))
         self.assertIsInstance(test_function._smart_cache_decorator, TimeDecorator)
 
     def test_global_instance_cron_based_usage(self):
@@ -114,7 +100,7 @@ class TestSmartCacheDecorator(TestCase):
         self.assertEqual(result, "test_result")
 
         # Check decorator attributes
-        self.assertTrue(hasattr(test_function, '_smart_cache_decorator'))
+        self.assertTrue(hasattr(test_function, "_smart_cache_decorator"))
         self.assertIsInstance(test_function._smart_cache_decorator, CronDecorator)
 
     def test_multiple_decorators_independent(self):
@@ -175,14 +161,16 @@ class TestSmartCacheDecorator(TestCase):
         self.assertIsNotNone(decorator.cache)
         self.assertEqual(decorator.cache, caches["default"])
 
-    @override_settings(CACHES={
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        },
-        'test_cache': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    @override_settings(
+        CACHES={
+            "default": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            },
+            "test_cache": {
+                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            },
         }
-    })
+    )
     def test_smart_cache_custom_cache_backend(self):
         """Test SmartCacheDecorator with custom cache backend"""
         from django.core.cache import caches
@@ -212,9 +200,7 @@ class TestSmartCacheDecorator(TestCase):
         """Test that parameters are properly forwarded to specific decorators"""
         # Test time_based parameter forwarding
         time_decorator = SmartCacheDecorator.time_based(
-            invalidate_at="14:30",
-            timezone_name="Europe/London",
-            cache_backend="test_cache"
+            invalidate_at="14:30", timezone_name="Europe/London", cache_backend="test_cache"
         )
 
         self.assertEqual(time_decorator.invalidate_at, "14:30")
@@ -223,9 +209,7 @@ class TestSmartCacheDecorator(TestCase):
 
         # Test cron_based parameter forwarding
         cron_decorator = SmartCacheDecorator.cron_based(
-            cron_expression="0 */2 * * *",
-            timezone_name="Asia/Tokyo",
-            cache_backend="redis_cache"
+            cron_expression="0 */2 * * *", timezone_name="Asia/Tokyo", cache_backend="redis_cache"
         )
 
         self.assertEqual(cron_decorator.cron_expression, "0 */2 * * *")

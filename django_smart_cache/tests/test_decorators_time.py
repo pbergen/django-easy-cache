@@ -1,4 +1,5 @@
 """Unit tests for TimeDecorator"""
+
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
@@ -22,12 +23,12 @@ class TestTimeDecorator(TestCase):
         invalid_formats = [
             "25:00",  # Invalid hour
             "14:60",  # Invalid minute
-            "1:30",   # Single digit hour
-            "14:5",   # Single digit minute
-            "14",     # Missing minute
+            "1:30",  # Single digit hour
+            "14:5",  # Single digit minute
+            "14",  # Missing minute
             "14:30:00",  # With seconds
-            "abc",    # Non-numeric
-            "",       # Empty string
+            "abc",  # Non-numeric
+            "",  # Empty string
         ]
 
         for invalid_format in invalid_formats:
@@ -47,13 +48,10 @@ class TestTimeDecorator(TestCase):
             decorator = TimeDecorator(invalidate_at=valid_format)
             self.assertEqual(decorator.invalidate_at, valid_format)
 
-    @override_settings(TIME_ZONE='UTC')
+    @override_settings(TIME_ZONE="UTC")
     def test_init_with_timezone(self):
         """Test initialization with custom timezone"""
-        decorator = TimeDecorator(
-            invalidate_at="14:30",
-            timezone_name="Europe/Berlin"
-        )
+        decorator = TimeDecorator(invalidate_at="14:30", timezone_name="Europe/Berlin")
         self.assertEqual(decorator.timezone_name, "Europe/Berlin")
 
     def test_get_expiration_date_future_time(self):
@@ -161,6 +159,7 @@ class TestTimeDecorator(TestCase):
 
     def test_docstring_preserved(self):
         """Test that function docstring is preserved after decoration"""
+
         @TimeDecorator(invalidate_at="12:00")
         def documented_function():
             """This is a test function."""
@@ -170,6 +169,7 @@ class TestTimeDecorator(TestCase):
 
     def test_function_name_preserved(self):
         """Test that function name is preserved after decoration"""
+
         @TimeDecorator(invalidate_at="12:00")
         def named_function():
             return "test"
@@ -178,12 +178,13 @@ class TestTimeDecorator(TestCase):
 
     def test_decorator_attributes_attached(self):
         """Test that decorator attaches its attributes to wrapped function"""
+
         @TimeDecorator(invalidate_at="12:00")
         def test_function():
             return "test"
 
-        self.assertTrue(hasattr(test_function, '_smart_cache_decorator'))
-        self.assertTrue(hasattr(test_function, '_smart_cache_original'))
+        self.assertTrue(hasattr(test_function, "_smart_cache_decorator"))
+        self.assertTrue(hasattr(test_function, "_smart_cache_original"))
         self.assertIsInstance(test_function._smart_cache_decorator, TimeDecorator)
 
     def test_inheritance_from_base_decorator(self):
@@ -194,8 +195,8 @@ class TestTimeDecorator(TestCase):
         self.assertIsInstance(decorator, BaseCacheDecorator)
 
         # Check that base class attributes are available
-        self.assertTrue(hasattr(decorator, 'config'))
-        self.assertTrue(hasattr(decorator, 'cache'))
-        self.assertTrue(hasattr(decorator, 'key_generator'))
-        self.assertTrue(hasattr(decorator, 'storage'))
-        self.assertTrue(hasattr(decorator, 'analytics'))
+        self.assertTrue(hasattr(decorator, "config"))
+        self.assertTrue(hasattr(decorator, "cache"))
+        self.assertTrue(hasattr(decorator, "key_generator"))
+        self.assertTrue(hasattr(decorator, "storage"))
+        self.assertTrue(hasattr(decorator, "analytics"))

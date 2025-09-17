@@ -1,8 +1,10 @@
 """Simple Cache Key Generation System"""
+
 import hashlib
 import inspect
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from django_smart_cache.config import get_config
 from django_smart_cache.exceptions import CacheKeyValidationError, UncachableArgumentError
@@ -57,7 +59,7 @@ class KeyGenerator:
         try:
             sig = inspect.signature(func)
             params = list(sig.parameters.keys())
-            has_self = params and params[0] == 'self'
+            has_self = params and params[0] == "self"
         except Exception:
             has_self = False
 
@@ -74,28 +76,26 @@ class KeyGenerator:
                 if safe_value:
                     simple_values.append(safe_value)
 
-            elif hasattr(arg, 'pk'):  # Handle Django Models
+            elif hasattr(arg, "pk"):  # Handle Django Models
                 simple_values.append(f"{arg.__class__.__name__}:{arg.pk}")
 
-            elif hasattr(arg, 'GET') and hasattr(arg.GET, 'items'):
+            elif hasattr(arg, "GET") and hasattr(arg.GET, "items"):
                 for key, value in arg.GET.items():
                     if isinstance(value, self.ALLOWED_TYPES):
-
                         safe_value = self._process_value(value)
                         if safe_value:
                             param_str = f"{key}={safe_value}"
                             simple_values.append(param_str)
             else:
-               raise UncachableArgumentError(
-                   f"Argument of type '{type(arg).__name__}' for function "
-                   f"'{func.__qualname__}' is not automatically cachable. "
-                   f"Please use simple types, Django models, or implement a custom key generation strategy."
-               )
+                raise UncachableArgumentError(
+                    f"Argument of type '{type(arg).__name__}' for function "
+                    f"'{func.__qualname__}' is not automatically cachable. "
+                    f"Please use simple types, Django models, or implement a custom key generation strategy."
+                )
 
         # Process kwargs with basic validation
         for key, value in kwargs.items():
-            if (key not in ['request', 'args', 'kwargs'] and
-            isinstance(value, self.ALLOWED_TYPES)):
+            if key not in ["request", "args", "kwargs"] and isinstance(value, self.ALLOWED_TYPES):
                 safe_value = self._process_value(value)
                 if safe_value:
                     param_str = f"{key}={safe_value}"
@@ -114,15 +114,15 @@ class KeyGenerator:
         str_value = str(value)
 
         # Hash if too long for cache key efficiency
-        if len(str_value) > self.config.get('MAX_VALUE_LENGTH'):
+        if len(str_value) > self.config.get("MAX_VALUE_LENGTH"):
             value_hash = hashlib.sha256(str_value.encode()).hexdigest()[:8]
             return f"_{value_hash}"
 
         # Minimal cleaning - only chars that break cache backends
         if isinstance(value, str):
             # Only remove control characters that actually cause problems
-            cleaned = str_value.replace('\n', '_').replace('\r', '_').replace('\0', '_')
-            return cleaned.replace(' ', '_')  # Spaces to underscores for readability
+            cleaned = str_value.replace("\n", "_").replace("\r", "_").replace("\0", "_")
+            return cleaned.replace(" ", "_")  # Spaces to underscores for readability
 
         return str_value
 
@@ -133,7 +133,7 @@ class KeyGenerator:
             raise CacheKeyValidationError(f"Cache key too long: {len(cache_key)} chars")
 
         # Only check for characters that actually break cache backends
-        problematic_chars = ['\n', '\r', '\0']
+        problematic_chars = ["\n", "\r", "\0"]
         for char in problematic_chars:
             if char in cache_key:
                 raise CacheKeyValidationError(f"Cache key contains problematic character: {repr(char)}")

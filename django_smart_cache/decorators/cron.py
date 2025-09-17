@@ -5,6 +5,7 @@ from cron_converter.sub_modules.seeker import Seeker
 from django_smart_cache.decorators.base import BaseCacheDecorator
 from django_smart_cache.exceptions import InvalidCronExpression
 
+
 class CronDecorator(BaseCacheDecorator):
     """
     Cron-based cache invalidation decorator with expiration date caching.
@@ -39,15 +40,9 @@ class CronDecorator(BaseCacheDecorator):
         ValueError: If cron_expression is invalid
     """
 
-    def __init__(
-        self,
-        cron_expression: str,
-        timezone_name: str | None = None,
-        cache_backend: str = "default"
-    ) -> None:
+    def __init__(self, cron_expression: str, timezone_name: str | None = None, cache_backend: str = "default") -> None:
         self.cron_expression = cron_expression
         super().__init__(timezone_name, cache_backend)
-
 
     def _get_expiration_date(self, now: datetime) -> datetime:
         """Calculate expiration date based on the next cron execution"""
@@ -62,11 +57,7 @@ class CronDecorator(BaseCacheDecorator):
     def _parse_cron_expression(cron_expression: str, now: datetime) -> Seeker:
         try:
             cron = Cron(cron_expression)
-            schedule= cron.schedule(now)
+            schedule = cron.schedule(now)
             return schedule
         except Exception as e:
             raise InvalidCronExpression(e)
-
-
-
-

@@ -1,4 +1,5 @@
 """Unit tests for BaseCacheDecorator"""
+
 import time
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
@@ -22,7 +23,7 @@ class TestBaseCacheDecorator(TestCase):
         """Test decorator initialization with default values"""
         decorator = TestableBaseCacheDecorator()
         self.assertIsNotNone(decorator.config)
-        self.assertEqual(decorator.cache_name, 'default')
+        self.assertEqual(decorator.cache_name, "default")
         self.assertIsNotNone(decorator.cache)
         self.assertIsNotNone(decorator.key_generator)
         self.assertIsNotNone(decorator.storage)
@@ -30,20 +31,20 @@ class TestBaseCacheDecorator(TestCase):
 
     def test_init_custom_cache_backend(self):
         """Test decorator initialization with custom cache backend"""
-        decorator = TestableBaseCacheDecorator(cache_backend='test_cache')
-        self.assertEqual(decorator.cache_name, 'test_cache')
+        decorator = TestableBaseCacheDecorator(cache_backend="test_cache")
+        self.assertEqual(decorator.cache_name, "test_cache")
 
-    @override_settings(TIME_ZONE='Europe/Berlin')
+    @override_settings(TIME_ZONE="Europe/Berlin")
     def test_init_custom_timezone(self):
         """Test decorator initialization with custom timezone"""
-        decorator = TestableBaseCacheDecorator(timezone_name='America/New_York')
-        self.assertEqual(decorator.timezone_name, 'America/New_York')
+        decorator = TestableBaseCacheDecorator(timezone_name="America/New_York")
+        self.assertEqual(decorator.timezone_name, "America/New_York")
 
-    @patch('django_smart_cache.decorators.base.logger')
+    @patch("django_smart_cache.decorators.base.logger")
     def test_init_invalid_cache_backend(self, mock_logger):
         """Test decorator initialization with invalid cache backend"""
         with self.assertRaises(ValueError):
-            TestableBaseCacheDecorator(cache_backend='nonexistent')
+            TestableBaseCacheDecorator(cache_backend="nonexistent")
 
     def test_health_check_cache_backend_success(self):
         """Test successful cache backend health check"""
@@ -67,7 +68,7 @@ class TestBaseCacheDecorator(TestCase):
         result = self.decorator._health_check_cache_backend(cache_mock)
         self.assertFalse(result)
 
-    @patch('django_smart_cache.decorators.base.logger')
+    @patch("django_smart_cache.decorators.base.logger")
     def test_health_check_cache_backend_exception(self, mock_logger):
         """Test cache backend health check with exception"""
         cache_mock = Mock()
@@ -79,16 +80,17 @@ class TestBaseCacheDecorator(TestCase):
 
     def test_callable_returns_wrapper(self):
         """Test that decorator returns a callable wrapper"""
+
         def test_function():
             return "test_result"
 
         wrapped = self.decorator(test_function)
         self.assertTrue(callable(wrapped))
-        self.assertTrue(hasattr(wrapped, '_smart_cache_decorator'))
-        self.assertTrue(hasattr(wrapped, '_smart_cache_original'))
+        self.assertTrue(hasattr(wrapped, "_smart_cache_decorator"))
+        self.assertTrue(hasattr(wrapped, "_smart_cache_original"))
         self.assertEqual(wrapped._smart_cache_original, test_function)
 
-    @patch('django_smart_cache.decorators.base.localtime')
+    @patch("django_smart_cache.decorators.base.localtime")
     def test_execute_with_cache_hit(self, mock_localtime):
         """Test cache hit scenario"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
@@ -105,7 +107,7 @@ class TestBaseCacheDecorator(TestCase):
         self.assertEqual(result, "cached_result")
         self.decorator.analytics.track_hit.assert_called_once()
 
-    @patch('django_smart_cache.decorators.base.localtime')
+    @patch("django_smart_cache.decorators.base.localtime")
     def test_execute_with_cache_miss(self, mock_localtime):
         """Test cache miss scenario"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
@@ -124,15 +126,13 @@ class TestBaseCacheDecorator(TestCase):
         self.decorator.storage.set.assert_called_once()
         self.decorator.analytics.track_miss.assert_called_once()
 
-    @patch('django_smart_cache.decorators.base.localtime')
+    @patch("django_smart_cache.decorators.base.localtime")
     def test_execute_with_cache_key_validation_error(self, mock_localtime):
         """Test cache execution with invalid cache key"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
 
         # Mock key validation error
-        self.decorator.key_generator.validate_cache_key = Mock(
-            side_effect=CacheKeyValidationError("Invalid key")
-        )
+        self.decorator.key_generator.validate_cache_key = Mock(side_effect=CacheKeyValidationError("Invalid key"))
 
         def test_function():
             return "original_result"
@@ -142,7 +142,7 @@ class TestBaseCacheDecorator(TestCase):
         # Should fallback to original function
         self.assertEqual(result, "original_result")
 
-    @patch('django_smart_cache.decorators.base.localtime')
+    @patch("django_smart_cache.decorators.base.localtime")
     def test_execute_with_template_response(self, mock_localtime):
         """Test cache execution with Django TemplateResponse"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)

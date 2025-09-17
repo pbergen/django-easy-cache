@@ -11,7 +11,7 @@ class TestModel(models.Model):
     active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.name
@@ -20,7 +20,7 @@ class TestModel(models.Model):
 class RelatedTestModel(models.Model):
     """A related model for testing cache invalidation."""
 
-    test_model = models.ForeignKey(TestModel, on_delete=models.CASCADE, related_name='related_items')
+    test_model = models.ForeignKey(TestModel, on_delete=models.CASCADE, related_name="related_items")
     title = models.CharField(max_length=50)
     value = models.IntegerField(default=0)
 

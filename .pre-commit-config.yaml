@@ -42,7 +42,7 @@ repos:
   - repo: https://github.com/ambient-innovation/boa-restrictor
     rev: v1.8.1
     hooks:
-        - id: boa-restrictor
+      - id: boa-restrictor
         args: [--config=pyproject.toml]
         exclude: |
           (?x)^(

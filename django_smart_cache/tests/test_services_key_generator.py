@@ -1,4 +1,5 @@
 """Unit tests for KeyGenerator service"""
+
 import hashlib
 from datetime import datetime
 from unittest.mock import Mock, patch
@@ -29,15 +30,11 @@ class TestKeyGenerator(TestCase):
 
     def test_generate_key_basic(self):
         """Test basic cache key generation"""
+
         def test_function(x, y):
             return x + y
 
-        key = self.generator.generate_key(
-            func=test_function,
-            args=(1, 2),
-            kwargs={},
-            expiration_date=None
-        )
+        key = self.generator.generate_key(func=test_function, args=(1, 2), kwargs={}, expiration_date=None)
 
         # Should contain function name and hashed params
         self.assertIn("test_function", key)
@@ -49,32 +46,24 @@ class TestKeyGenerator(TestCase):
 
     def test_generate_key_with_expiration_date(self):
         """Test cache key generation with expiration date"""
+
         def test_function():
             return "test"
 
         expiration = datetime(2025, 9, 15, 14, 30, 0)
 
-        key = self.generator.generate_key(
-            func=test_function,
-            args=(),
-            kwargs={},
-            expiration_date=expiration
-        )
+        key = self.generator.generate_key(func=test_function, args=(), kwargs={}, expiration_date=expiration)
 
         # Should contain expiration date in formatted form
         self.assertIn("20250915_143000", key)
 
     def test_generate_key_with_kwargs(self):
         """Test cache key generation with keyword arguments"""
+
         def test_function(x, y=None, z=None):
             return x
 
-        key = self.generator.generate_key(
-            func=test_function,
-            args=(1,),
-            kwargs={'y': 2, 'z': 3},
-            expiration_date=None
-        )
+        key = self.generator.generate_key(func=test_function, args=(1,), kwargs={"y": 2, "z": 3}, expiration_date=None)
 
         # Should generate consistent key
         self.assertTrue(key.startswith("smart_cache:"))
@@ -82,56 +71,35 @@ class TestKeyGenerator(TestCase):
 
     def test_generate_key_consistency(self):
         """Test that same inputs generate same key"""
+
         def test_function(x, y):
             return x + y
 
-        key1 = self.generator.generate_key(
-            func=test_function,
-            args=(1, 2),
-            kwargs={},
-            expiration_date=None
-        )
+        key1 = self.generator.generate_key(func=test_function, args=(1, 2), kwargs={}, expiration_date=None)
 
-        key2 = self.generator.generate_key(
-            func=test_function,
-            args=(1, 2),
-            kwargs={},
-            expiration_date=None
-        )
+        key2 = self.generator.generate_key(func=test_function, args=(1, 2), kwargs={}, expiration_date=None)
 
         self.assertEqual(key1, key2)
 
     def test_generate_key_different_args(self):
         """Test that different args generate different keys"""
+
         def test_function(x, y):
             return x + y
 
-        key1 = self.generator.generate_key(
-            func=test_function,
-            args=(1, 2),
-            kwargs={},
-            expiration_date=None
-        )
+        key1 = self.generator.generate_key(func=test_function, args=(1, 2), kwargs={}, expiration_date=None)
 
-        key2 = self.generator.generate_key(
-            func=test_function,
-            args=(1, 3),
-            kwargs={},
-            expiration_date=None
-        )
+        key2 = self.generator.generate_key(func=test_function, args=(1, 3), kwargs={}, expiration_date=None)
 
         self.assertNotEqual(key1, key2)
 
     def test_simple_params_with_allowed_types(self):
         """Test _simple_params with allowed types"""
+
         def test_function(s, i, f, b, n):
             return s
 
-        params = self.generator._simple_params(
-            func=test_function,
-            args=("string", 42, 3.14, True, None),
-            kwargs={}
-        )
+        params = self.generator._simple_params(func=test_function, args=("string", 42, 3.14, True, None), kwargs={})
 
         # Should include all allowed types except None
         self.assertIn("string", params)
@@ -141,17 +109,14 @@ class TestKeyGenerator(TestCase):
 
     def test_simple_params_with_method_self_filtering(self):
         """Test _simple_params filters out 'self' parameter for methods"""
+
         class TestClass:
             def test_method(self, x, y):
                 return x + y
 
         instance = TestClass()
 
-        params = self.generator._simple_params(
-            func=instance.test_method,
-            args=(instance, 1, 2),
-            kwargs={}
-        )
+        params = self.generator._simple_params(func=instance.test_method, args=(instance, 1, 2), kwargs={})
 
         # Should not include 'self' in parameters
         self.assertNotIn("TestClass", params)
@@ -168,11 +133,7 @@ class TestKeyGenerator(TestCase):
         def test_function(model):
             return model
 
-        params = self.generator._simple_params(
-            func=test_function,
-            args=(mock_model,),
-            kwargs={}
-        )
+        params = self.generator._simple_params(func=test_function, args=(mock_model,), kwargs={})
 
         # Should include model class name and pk
         self.assertIn("TestModel:123", params)
@@ -180,17 +141,13 @@ class TestKeyGenerator(TestCase):
     def test_simple_params_with_request_object(self):
         """Test _simple_params with Django HttpRequest"""
         request = HttpRequest()
-        request.method = 'GET'
-        request.GET = {'param1': 'value1', 'param2': 'value2'}
+        request.method = "GET"
+        request.GET = {"param1": "value1", "param2": "value2"}
 
         def test_view(request):
             return "response"
 
-        params = self.generator._simple_params(
-            func=test_view,
-            args=(request,),
-            kwargs={}
-        )
+        params = self.generator._simple_params(func=test_view, args=(request,), kwargs={})
 
         # Should include GET parameters
         self.assertIn("param1=value1", params)
@@ -198,6 +155,7 @@ class TestKeyGenerator(TestCase):
 
     def test_simple_params_with_kwargs_filtering(self):
         """Test _simple_params filters out certain kwargs"""
+
         def test_function(**kwargs):
             return "test"
 
@@ -205,11 +163,11 @@ class TestKeyGenerator(TestCase):
             func=test_function,
             args=(),
             kwargs={
-                'request': Mock(),  # Should be filtered out
-                'args': (1, 2),     # Should be filtered out
-                'kwargs': {},       # Should be filtered out
-                'valid_param': 'value'  # Should be included
-            }
+                "request": Mock(),  # Should be filtered out
+                "args": (1, 2),  # Should be filtered out
+                "kwargs": {},  # Should be filtered out
+                "valid_param": "value",  # Should be included
+            },
         )
 
         self.assertNotIn("request", params)
@@ -299,16 +257,12 @@ class TestKeyGenerator(TestCase):
 
     def test_function_name_generation(self):
         """Test function name generation for different function types"""
+
         # Regular function
         def regular_function():
             pass
 
-        key1 = self.generator.generate_key(
-            func=regular_function,
-            args=(),
-            kwargs={},
-            expiration_date=None
-        )
+        key1 = self.generator.generate_key(func=regular_function, args=(), kwargs={}, expiration_date=None)
 
         self.assertIn("regular_function", self.generator.function_name)
 
@@ -318,34 +272,20 @@ class TestKeyGenerator(TestCase):
                 pass
 
         instance = TestClass()
-        key2 = self.generator.generate_key(
-            func=instance.test_method,
-            args=(instance,),
-            kwargs={},
-            expiration_date=None
-        )
+        key2 = self.generator.generate_key(func=instance.test_method, args=(instance,), kwargs={}, expiration_date=None)
 
         self.assertIn("TestClass.test_method", self.generator.function_name)
 
     def test_hash_consistency(self):
         """Test that parameter hashing is consistent"""
+
         def test_function(x, y):
             return x + y
 
         # Generate key twice with same params
-        key1 = self.generator.generate_key(
-            func=test_function,
-            args=(1, 2),
-            kwargs={},
-            expiration_date=None
-        )
+        key1 = self.generator.generate_key(func=test_function, args=(1, 2), kwargs={}, expiration_date=None)
 
-        key2 = self.generator.generate_key(
-            func=test_function,
-            args=(1, 2),
-            kwargs={},
-            expiration_date=None
-        )
+        key2 = self.generator.generate_key(func=test_function, args=(1, 2), kwargs={}, expiration_date=None)
 
         # Should have same hash part
         hash1 = key1.split("_")[-1]
@@ -354,6 +294,7 @@ class TestKeyGenerator(TestCase):
 
     def test_complex_parameter_handling(self):
         """Test handling of complex parameter combinations"""
+
         def complex_function(pos1, pos2, kw1=None, kw2=None):
             return "test"
 
@@ -361,8 +302,8 @@ class TestKeyGenerator(TestCase):
         key = self.generator.generate_key(
             func=complex_function,
             args=(1, "string"),
-            kwargs={'kw1': True, 'kw2': 3.14},
-            expiration_date=datetime(2025, 9, 15, 12, 0, 0)
+            kwargs={"kw1": True, "kw2": 3.14},
+            expiration_date=datetime(2025, 9, 15, 12, 0, 0),
         )
 
         # Should generate valid key
@@ -375,21 +316,17 @@ class TestKeyGenerator(TestCase):
 
     def test_edge_case_empty_params(self):
         """Test edge case with no parameters"""
+
         def no_params_function():
             return "test"
 
-        key = self.generator.generate_key(
-            func=no_params_function,
-            args=(),
-            kwargs={},
-            expiration_date=None
-        )
+        key = self.generator.generate_key(func=no_params_function, args=(), kwargs={}, expiration_date=None)
 
         # Should still generate valid key
         self.assertTrue(key.startswith("smart_cache:"))
         self.assertIn("no_params_function", key)
 
-    @patch('django_smart_cache.services.key_generator.get_config')
+    @patch("django_smart_cache.services.key_generator.get_config")
     def test_max_value_length_config(self, mock_get_config):
         """Test that MAX_VALUE_LENGTH is respected from config"""
         mock_config = Mock()
@@ -404,10 +341,11 @@ class TestKeyGenerator(TestCase):
 
         # Should be hashed because it exceeds config limit
         self.assertTrue(result.startswith("_"))
-        mock_config.get.assert_called_with('MAX_VALUE_LENGTH')
+        mock_config.get.assert_called_with("MAX_VALUE_LENGTH")
 
     def test_repr_fallback_for_unknown_objects(self):
         """Test repr() fallback for unknown object types"""
+
         class CustomClass:
             def __repr__(self):
                 return "CustomClass(value=42)"
@@ -417,11 +355,7 @@ class TestKeyGenerator(TestCase):
         def test_function(obj):
             return obj
 
-        params = self.generator._simple_params(
-            func=test_function,
-            args=(custom_obj,),
-            kwargs={}
-        )
+        params = self.generator._simple_params(func=test_function, args=(custom_obj,), kwargs={})
 
         # Should include repr() result
         self.assertIn("CustomClass(value=42)", params)

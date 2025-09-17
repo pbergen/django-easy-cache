@@ -1,7 +1,7 @@
 from typing import Union
 
 
-def format_duration_ms(duration_ms: Union[int, float]) -> str:
+def format_duration_ms(duration_ms: int | float) -> str:
     """
     Format duration in milliseconds to a human-readable string.
 

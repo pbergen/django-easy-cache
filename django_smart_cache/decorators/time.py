@@ -34,13 +34,8 @@ class TimeDecorator(BaseCacheDecorator):
         ValueError: If invalidate_at format is invalid
     """
 
-    def __init__(
-        self,
-        invalidate_at: str,
-        timezone_name: str | None = None,
-        cache_backend: str = "default"
-    ) -> None:
-        if not re.match(r'^([01]\d|2[0-3]):([0-5]\d)$', invalidate_at):
+    def __init__(self, invalidate_at: str, timezone_name: str | None = None, cache_backend: str = "default") -> None:
+        if not re.match(r"^([01]\d|2[0-3]):([0-5]\d)$", invalidate_at):
             raise InvalidTimeExpression(
                 f"Invalid time format! 'HH:MM' was expected, but ‘{invalidate_at}’ was received."
             )
@@ -50,15 +45,10 @@ class TimeDecorator(BaseCacheDecorator):
     def _get_expiration_date(self, now: datetime) -> datetime:
         """Calculate expiration date based on next invalidation time"""
 
-        invalidate_hour, invalidate_minute = map(int, self.invalidate_at.split(':'))
+        invalidate_hour, invalidate_minute = map(int, self.invalidate_at.split(":"))
 
         # Calculate next invalidation
-        next_invalidation = now.replace(
-            hour=invalidate_hour,
-            minute=invalidate_minute,
-            second=0,
-            microsecond=0
-        )
+        next_invalidation = now.replace(hour=invalidate_hour, minute=invalidate_minute, second=0, microsecond=0)
 
         # If time has already passed today, next day
         if now >= next_invalidation:
