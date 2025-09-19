@@ -32,7 +32,7 @@ COPY --chown=app:app uv.lock pyproject.toml ./
 COPY --chown=app:app django_smart_cache/ ./django_smart_cache/
 
 # Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/home/app/.cache/uv,uid=1000,gid=1000 \
     if [ "$UV_INSTALL_DEV" = "false" ] || [ "$UV_INSTALL_DEV" = "0" ]; then \
         uv sync --frozen  --no-dev; \
     else \
@@ -56,7 +56,7 @@ RUN apt-get update && \
       locales && \
     sed -i -e "s/# en_GB.UTF-8.*/en_GB.UTF-8 UTF-8/" /etc/locale.gen && \
     sed -i -e "s/# de_DE.UTF-8.*/de_DE.UTF-8 UTF-8/" /etc/locale.gen && \
-    locale-gen de_DE.UTF-8 \
+    locale-gen de_DE.UTF-8 &&\
     update-locale LANG=de_DE.UTF-8 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -65,10 +65,10 @@ RUN apt-get update && \
 ENV PROJECT_HOME=/app
 
 # Declare locales
-ENV LANG de_DE.UTF-8
-ENV LANGUAGE de_DE:de
-ENV LC_ALL de_DE.UTF-8
-ENV PYTHONUNBUFFERED 1
+ENV LANG=de_DE.UTF-8
+ENV LANGUAGE=de_DE:de
+ENV LC_ALL=de_DE.UTF-8
+ENV PYTHONUNBUFFERED=1
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:/.venv/bin:$PATH" \

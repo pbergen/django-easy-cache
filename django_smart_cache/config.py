@@ -23,18 +23,17 @@ class SmartCacheConfig:
         "KEY_PREFIX": "smart_cache",
         # Value length for each key
         "MAX_VALUE_LENGTH": 100,
+        "DEBUG_TOOLBAR_INTEGRATION": False,  # not implemented yes
         # Analytics & Monitoring
-        "DEBUG_TOOLBAR_INTEGRATION": True,
-        # Logging / TRACKING / ANALYTICS
         "TRACKING": {
-            "TRACK_CACHE_HITS": True,
+            "TRACK_CACHE_HITS": False,
             "TRACK_CACHE_MISSES": True,
-            "TRACK_PERFORMANCE": True,
+            "TRACK_PERFORMANCE": False,
         },
         "EVENTS": {
-            "EVENT_CACHE_HITS": True,
-            "EVENT_CACHE_MISSES": True,
-            "EVENT_CACHE_ERRORS": True,
+            "EVENT_CACHE_HITS": False,
+            "EVENT_CACHE_MISSES": False,
+            "EVENT_CACHE_ERRORS": False,
         },
     }
 

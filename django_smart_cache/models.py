@@ -32,22 +32,17 @@ class CacheEntry(models.Model):
         null=True, blank=True, db_index=True, help_text="When this cache entry expires and should be considered invalid"
     )
 
-    # Cache current time to avoid multiple DB calls
-    _current_time_cache = None
-    _current_time_cache_timestamp = None
-
     @classmethod
     def _get_cached_current_time(cls):
         """Get cached current time to avoid multiple timezone.now() calls"""
         now = time.time()
         if (
             not hasattr(cls._thread_local, "current_time_cache")
-            or cls._current_time_cache_timestamp is None
-            or now - cls._current_time_cache_timestamp > 1
-        ):  # Cache for 1 second
-            cls._current_time_cache = timezone.now()
-            cls._current_time_cache_timestamp = now
-        return cls._current_time_cache
+            or now - cls._thread_local.current_time_cache_timestamp > 1
+        ):
+            cls._thread_local.current_time_cache = timezone.now()
+            cls._thread_local.current_time_cache_timestamp = now
+        return cls._thread_local.current_time_cache
 
     class Meta:
         verbose_name = "Cache Entry"
