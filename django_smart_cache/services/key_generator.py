@@ -115,7 +115,7 @@ class KeyGenerator:
 
         # Hash if too long for cache key efficiency
         if len(str_value) > self.config.get("MAX_VALUE_LENGTH"):
-            value_hash = hashlib.sha256(str_value.encode()).hexdigest()[:8]
+            value_hash = hashlib.sha256(str_value.encode()).hexdigest()[:16]
             return f"_{value_hash}"
 
         # Minimal cleaning - only chars that break cache backends
