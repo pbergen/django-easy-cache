@@ -35,7 +35,7 @@ Add to your `INSTALLED_APPS`:
 ```python
 INSTALLED_APPS = [
     # ... your apps
-    'django_smart_cache',
+    "django_smart_cache",
 ]
 ```
 
@@ -78,6 +78,7 @@ With this:
 # AFTER: 3 lines with Smart Cache
 from django_smart_cache import smart_cache
 
+
 @smart_cache.time_based(
     invalidate_at="13:00",
 )
@@ -92,8 +93,9 @@ def get_data(location_id: int):
 ```python
 from django_smart_cache import smart_cache
 
+
 @smart_cache.time_based(
-    invalidate_at="14:00",           # Invalidate daily at 14:00
+    invalidate_at="14:00",  # Invalidate daily at 14:00
 )
 def get_daily_report(date: str):
     return generate_expensive_report(date)
@@ -104,9 +106,10 @@ def get_daily_report(date: str):
 ```python
 from django_smart_cache import smart_cache
 
+
 @smart_cache.cron_based(cron_expression="*/30 * * * *")
 def get_live_metrics():
-  return fetch_realtime_data()
+    return fetch_realtime_data()
 ```
 
 ### Advanced Configuration
@@ -114,24 +117,22 @@ def get_live_metrics():
 ```python
 # settings.py
 SMART_CACHE = {
-  'DEFAULT_BACKEND': 'default',
-  'KEY_PREFIX': 'smart_cache',
-
-  # Analytics & Monitoring
-  'ANALYTICS_ENABLED': True,
-  'PERFORMANCE_MONITORING': True,
-  'DEBUG_TOOLBAR_INTEGRATION': True,
-
-  # Cache Key
-  'MAX_VALUE_LENGTH': 100,
-
-  # Logging / TRACKING / ANALYTICS
-  'TRACKING': {
-      'TRACK_CACHE_HITS': True,
-      'TRACK_CACHE_MISSES': True,
-      'TRACK_ERRORS': True,
-      'TRACK_PERFORMANCE': True,
-  },
+    "DEFAULT_BACKEND": "default",
+    "KEY_PREFIX": "smart_cache",
+    # Analytics & Monitoring
+    "ANALYTICS_ENABLED": True,
+    "PERFORMANCE_MONITORING": True,
+    "DEBUG_TOOLBAR_INTEGRATION": True,
+    # Cache Key
+    "MAX_VALUE_LENGTH": 100,
+    # Logging / TRACKING / ANALYTICS
+    "TRACKING": {
+        "TRACK_CACHE_HITS": True,
+        "TRACK_CACHE_MISSES": True,
+        "TRACK_ERRORS": True,
+        "TRACK_PERFORMANCE": True,
+    },
+}
 ```
 
 ## 🛠️ Management Commands
@@ -169,6 +170,61 @@ Smart Cache provides a Django Admin interface at `/admin/django_smart_cache/`:
 - **Cache Entries**: Monitor cache performance, hit rates, and access patterns
 - **Event History**: Analyze cache events and performance metrics
 
+## 🐳 Docker Development
+
+### Quick Start with Docker
+
+Start the development environment:
+
+```bash
+docker-compose up -d
+```
+
+This will start:
+- Django application with auto-reload
+- Redis cache backend
+- PostgreSQL database
+- Qdrant vector database
+
+### Docker Build Options
+
+You can control which optional dependencies are installed during the Docker build process using build arguments:
+
+```bash
+# Build with all dependencies (default in docker-compose.yml)
+docker-compose build
+
+# Build with only core dependencies
+docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=false -t django-smart-cache .
+
+# Build with development dependencies only
+docker build --build-arg UV_INSTALL_DEV=true --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=false -t django-smart-cache .
+
+# Build with Redis support only
+docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=true --build-arg UV_INSTALL_POSTGRESQL=false -t django-smart-cache .
+
+# Build with PostgreSQL support only
+docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=true -t django-smart-cache .
+
+# Custom docker-compose override
+```yml
+services:
+  dev:
+    build:
+      args:
+        UV_INSTALL_DEV: "true"
+        UV_INSTALL_REDIS: "true"
+        UV_INSTALL_POSTGRESQL: "false"
+```
+
+### Available Build Arguments
+
+- `UV_INSTALL_DEV`: Install development dependencies (default: `true`)
+- `UV_INSTALL_REDIS`: Install Redis dependencies (default: `true`)
+- `UV_INSTALL_POSTGRESQL`: Install PostgreSQL dependencies (default: `true`)
+
+These can be combined as needed. For example, you can install both dev and Redis dependencies by setting both flags to `true`.
+
 ## 🧪 Testing Support
 
 Smart Cache includes comprehensive testing utilities:
@@ -177,13 +233,14 @@ Smart Cache includes comprehensive testing utilities:
 from django.test import TestCase
 from django_smart_cache.tests.conftest import CacheTestMixin
 
+
 class MyCacheTest(CacheTestMixin, TestCase):
     def test_cache_behavior(self):
         # Test cache hit/miss behavior
-        with self.assert_cache_miss('test_key'):
+        with self.assert_cache_miss("test_key"):
             result = expensive_function()
 
-        with self.assert_cache_hit('test_key'):
+        with self.assert_cache_hit("test_key"):
             result = expensive_function()
 ```
 

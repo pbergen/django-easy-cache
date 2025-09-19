@@ -22,7 +22,7 @@ class CacheEntry(models.Model):
     cache_backend = models.CharField(max_length=100, default="default")
 
     created_at = models.DateTimeField(auto_now_add=True)
-    last_accessed = models.DateTimeField(auto_now_add=True)
+    last_accessed = models.DateTimeField(auto_now=True)
     access_count = models.PositiveIntegerField(default=0)
     hit_count = models.PositiveIntegerField(default=0)
     miss_count = models.PositiveIntegerField(default=0)

@@ -23,7 +23,7 @@ class TestModelListView(ListView):
     paginate_by = 10
 
     # @smart_cache.cron_based(cron_expression="*/5a * * * *")
-    @smart_cache.time_based(invalidate_at="11:10")
+    @smart_cache.time_based(invalidate_at="21:26", cache_backend="redis")
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 

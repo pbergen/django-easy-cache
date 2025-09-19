@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
       args:
         UV_INSTALL_DEV: "1"
+        UV_INSTALL_REDIS: "1"
+        UV_INSTALL_POSTGRESQL: "1"
     container_name: django-smart-cache-dev
     volumes:
       # Package source code (live reload)

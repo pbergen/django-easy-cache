@@ -74,31 +74,20 @@ TEMPLATES = [
 # Database
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB", "smartcache_test"),
+        "USER": os.environ.get("POSTGRES_USER", "smartcache"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "smartcache_dev"),
+        "HOST": os.environ.get("POSTGRES_HOST", "postgres"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
-
-# Alternative PostgreSQL configuration (uncomment when psycopg2 is installed)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('POSTGRES_DB', 'smartcache_test'),
-#         'USER': os.environ.get('POSTGRES_USER', 'smartcache'),
-#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'smartcache_dev'),
-#         'HOST': os.environ.get('POSTGRES_HOST', 'postgres'),
-#         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-#     }
-# }
 
 # Cache configuration for testing django-smart-cache
 CACHES = {
     "redis": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": f"redis://{os.environ.get('REDIS_HOST', 'redis')}:{os.environ.get('REDIS_PORT', '6379')}/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
     },
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -134,3 +123,16 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS += [".".join([*ip.split(".")[:-1], "1"]) for ip in ips]
+
+SMART_CACHE = {
+    "TRACKING": {
+        "TRACK_CACHE_HITS": True,
+        "TRACK_CACHE_MISSES": True,
+        "TRACK_PERFORMANCE": True,
+    },
+    "EVENTS": {
+        "EVENT_CACHE_HITS": True,
+        "EVENT_CACHE_MISSES": True,
+        "EVENT_CACHE_ERRORS": True,
+    },
+}

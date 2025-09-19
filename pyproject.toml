@@ -57,6 +57,7 @@ dev = [
     "time-machine",
     "django-debug-toolbar",
     "django-extensions",
+    "psycopg[binary]~=3.2",
 ]
 redis = [
     "redis>=5.0.0",

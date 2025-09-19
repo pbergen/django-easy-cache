@@ -6,8 +6,10 @@ ARG PYTHON_MINOR_VERSION=3.11
 ### STAGE 1: Build python ###
 FROM ghcr.io/astral-sh/uv:python${PYTHON_MINOR_VERSION}-bookworm-slim AS builder
 
-# Build argument to control dev dependencies
+# Build arguments for controlling optional dependencies
 ARG UV_INSTALL_DEV=false
+ARG UV_INSTALL_REDIS=false
+ARG UV_INSTALL_POSTGRESQL=false
 
 # Set work directory
 WORKDIR /app
@@ -33,10 +35,20 @@ COPY --chown=app:app django_smart_cache/ ./django_smart_cache/
 
 # Install the project's dependencies using the lockfile and settings
 RUN --mount=type=cache,target=/home/app/.cache/uv,uid=1000,gid=1000 \
-    if [ "$UV_INSTALL_DEV" = "false" ] || [ "$UV_INSTALL_DEV" = "0" ]; then \
-        uv sync --frozen  --no-dev; \
+    EXTRAS=""; \
+    if [ "$UV_INSTALL_DEV" = "true" ] || [ "$UV_INSTALL_DEV" = "1" ]; then \
+        EXTRAS="$EXTRAS dev"; \
+    fi; \
+    if [ "$UV_INSTALL_REDIS" = "true" ] || [ "$UV_INSTALL_REDIS" = "1" ]; then \
+        EXTRAS="$EXTRAS redis"; \
+    fi; \
+    if [ "$UV_INSTALL_POSTGRESQL" = "true" ] || [ "$UV_INSTALL_POSTGRESQL" = "1" ]; then \
+        EXTRAS="$EXTRAS postgresql"; \
+    fi; \
+    if [ -n "$EXTRAS" ]; then \
+        uv sync --frozen $(echo "$EXTRAS" | sed 's/^ *//' | sed 's/ *$//' | sed 's/ / --extra /g' | sed 's/^/--extra /'); \
     else \
-        uv sync --frozen  --extra dev; \
+        uv sync --frozen --no-dev; \
     fi
 
 # Copy the rest of the application files
