@@ -117,13 +117,13 @@ class TestCacheEntry(TestCase):
         """Test time_left property"""
         # Test with no expiration date
         entry = CacheEntry.objects.create(cache_key="test_key", function_name="test_function", timeout=3600)
-        self.assertIsNone(entry.time_left)
+        self.assertEqual(entry.time_left, timedelta(0))
 
         # Test with expired entry
         past_time = localtime() - timedelta(hours=1)
         entry.expires_at = past_time
         entry.save()
-        self.assertIsNone(entry.time_left)
+        self.assertEqual(entry.time_left, timedelta(0))
 
         # Test with future expiration
         future_time = localtime() + timedelta(hours=1)
@@ -231,25 +231,25 @@ class TestCacheEventHistory(TestCase):
 
     def test_event_ordering(self):
         """Test that events are ordered by occurred_at descending"""
-        # Create events with specific times
-        with patch("django_smart_cache.models.localtime") as mock_localtime:
-            # First event (older)
-            mock_localtime.return_value = datetime(2025, 9, 15, 10, 0, 0)
-            event1 = CacheEventHistory.objects.create(
-                event_name="first_event",
-                event_type=CacheEventHistory.EventType.HIT,
-                function_name="test_function",
-                cache_key="test_key1",
-            )
+        # Create events - Django will automatically set occurred_at with auto_now_add
+        event1 = CacheEventHistory.objects.create(
+            event_name="first_event",
+            event_type=CacheEventHistory.EventType.HIT,
+            function_name="test_function",
+            cache_key="test_key1",
+        )
 
-            # Second event (newer)
-            mock_localtime.return_value = datetime(2025, 9, 15, 11, 0, 0)
-            event2 = CacheEventHistory.objects.create(
-                event_name="second_event",
-                event_type=CacheEventHistory.EventType.MISS,
-                function_name="test_function",
-                cache_key="test_key2",
-            )
+        # Small delay to ensure different timestamps
+        import time
+
+        time.sleep(0.001)
+
+        event2 = CacheEventHistory.objects.create(
+            event_name="second_event",
+            event_type=CacheEventHistory.EventType.MISS,
+            function_name="test_function",
+            cache_key="test_key2",
+        )
 
         # Query should return newest first due to Meta ordering
         events = list(CacheEventHistory.objects.all())

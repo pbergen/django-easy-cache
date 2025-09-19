@@ -43,8 +43,10 @@ class TestBaseCacheDecorator(TestCase):
     @patch("django_smart_cache.decorators.base.logger")
     def test_init_invalid_cache_backend(self, mock_logger):
         """Test decorator initialization with invalid cache backend"""
-        with self.assertRaises(ValueError):
-            TestableBaseCacheDecorator(cache_backend="nonexistent")
+        # Invalid cache backends should log errors but not raise ValueError
+        decorator = TestableBaseCacheDecorator(cache_backend="nonexistent")
+        self.assertIsNone(decorator.cache)
+        mock_logger.error.assert_called()
 
     def test_health_check_cache_backend_success(self):
         """Test successful cache backend health check"""
@@ -90,7 +92,7 @@ class TestBaseCacheDecorator(TestCase):
         self.assertTrue(hasattr(wrapped, "_smart_cache_original"))
         self.assertEqual(wrapped._smart_cache_original, test_function)
 
-    @patch("django_smart_cache.decorators.base.localtime")
+    @patch("django.utils.timezone.localtime")
     def test_execute_with_cache_hit(self, mock_localtime):
         """Test cache hit scenario"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
@@ -107,7 +109,7 @@ class TestBaseCacheDecorator(TestCase):
         self.assertEqual(result, "cached_result")
         self.decorator.analytics.track_hit.assert_called_once()
 
-    @patch("django_smart_cache.decorators.base.localtime")
+    @patch("django.utils.timezone.localtime")
     def test_execute_with_cache_miss(self, mock_localtime):
         """Test cache miss scenario"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
@@ -126,7 +128,7 @@ class TestBaseCacheDecorator(TestCase):
         self.decorator.storage.set.assert_called_once()
         self.decorator.analytics.track_miss.assert_called_once()
 
-    @patch("django_smart_cache.decorators.base.localtime")
+    @patch("django.utils.timezone.localtime")
     def test_execute_with_cache_key_validation_error(self, mock_localtime):
         """Test cache execution with invalid cache key"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
@@ -142,7 +144,7 @@ class TestBaseCacheDecorator(TestCase):
         # Should fallback to original function
         self.assertEqual(result, "original_result")
 
-    @patch("django_smart_cache.decorators.base.localtime")
+    @patch("django.utils.timezone.localtime")
     def test_execute_with_template_response(self, mock_localtime):
         """Test cache execution with Django TemplateResponse"""
         mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)

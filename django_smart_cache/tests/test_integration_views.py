@@ -1,5 +1,6 @@
 """Integration tests for decorator usage in Django views"""
 
+import json
 import time
 from datetime import datetime
 from unittest.mock import patch, Mock
@@ -22,6 +23,10 @@ class TestFunctionBasedViewsIntegration(TestCase):
         # Clear database
         CacheEntry.objects.all().delete()
         CacheEventHistory.objects.all().delete()
+
+    def get_json_data(self, response):
+        """Helper method to extract JSON data from JsonResponse"""
+        return json.loads(response.content.decode())
 
     def test_time_based_function_view_with_jsonresponse(self):
         """Test time-based decorator on function-based view returning JsonResponse"""
@@ -53,7 +58,7 @@ class TestFunctionBasedViewsIntegration(TestCase):
         self.assertEqual(response1.status_code, 200)
 
         # Parse JSON response
-        response1_data = response1.json()
+        response1_data = self.get_json_data(response1)
         self.assertEqual(response1_data["message"], "Time-based cache test successful!")
         self.assertEqual(response1_data["test"], "time_based_function_view")
 
@@ -66,7 +71,7 @@ class TestFunctionBasedViewsIntegration(TestCase):
         self.assertEqual(response2.status_code, 200)
 
         # Should return same JSON data (cached)
-        response2_data = response2.json()
+        response2_data = self.get_json_data(response2)
         self.assertEqual(response1_data, response2_data)
 
         # Second call should be significantly faster
@@ -105,12 +110,12 @@ class TestFunctionBasedViewsIntegration(TestCase):
         response1 = test_cron_view(request)
         self.assertIsInstance(response1, JsonResponse)
 
-        response1_data = response1.json()
+        response1_data = self.get_json_data(response1)
         self.assertEqual(response1_data["message"], "Cron-based cache test successful!")
 
         # Second call - should be cache hit
         response2 = test_cron_view(request)
-        response2_data = response2.json()
+        response2_data = self.get_json_data(response2)
 
         # Should return same cached data
         self.assertEqual(response1_data, response2_data)
@@ -147,18 +152,18 @@ class TestFunctionBasedViewsIntegration(TestCase):
 
         # First call with specific params
         response1 = parameterized_view(request1)
-        response1_data = response1.json()
+        response1_data = self.get_json_data(response1)
 
         # Second call with same params - should hit cache
         response2 = parameterized_view(request2)
-        response2_data = response2.json()
+        response2_data = self.get_json_data(response2)
 
         # Should return same data (cached)
         self.assertEqual(response1_data, response2_data)
 
         # Third call with different params - should miss cache
         response3 = parameterized_view(request3)
-        response3_data = response3.json()
+        response3_data = self.get_json_data(response3)
 
         # Should return different data
         self.assertNotEqual(response1_data, response3_data)
@@ -188,7 +193,7 @@ class TestFunctionBasedViewsIntegration(TestCase):
         self.assertEqual(response1.status_code, 200)
 
         response2 = error_view(normal_request)
-        self.assertEqual(response1.json(), response2.json())
+        self.assertEqual(self.get_json_data(response1), self.get_json_data(response2))
 
         # Error request should raise exception (not cached)
         error_request = self.factory.get("/test/?error=true")
@@ -198,7 +203,7 @@ class TestFunctionBasedViewsIntegration(TestCase):
 
         # Normal request should still work from cache
         response3 = error_view(normal_request)
-        self.assertEqual(response1.json(), response3.json())
+        self.assertEqual(self.get_json_data(response1), self.get_json_data(response3))
 
     def test_multiple_decorated_views(self):
         """Test multiple views with different decorators"""
@@ -228,9 +233,9 @@ class TestFunctionBasedViewsIntegration(TestCase):
         self.assertIsInstance(midnight_response, JsonResponse)
 
         # Parse responses
-        daily_data = daily_response.json()
-        hourly_data = hourly_response.json()
-        midnight_data = midnight_response.json()
+        daily_data = self.get_json_data(daily_response)
+        hourly_data = self.get_json_data(hourly_response)
+        midnight_data = self.get_json_data(midnight_response)
 
         self.assertEqual(daily_data["report"], "daily")
         self.assertEqual(hourly_data["stats"], "hourly")
@@ -270,11 +275,11 @@ class TestFunctionBasedViewsIntegration(TestCase):
 
         # First call
         response1 = complex_data_view(request)
-        data1 = response1.json()
+        data1 = self.get_json_data(response1)
 
         # Second call - should return exact same complex data
         response2 = complex_data_view(request)
-        data2 = response2.json()
+        data2 = self.get_json_data(response2)
 
         self.assertEqual(data1, data2)
 
@@ -299,6 +304,10 @@ class TestClassBasedViewsIntegration(TestCase):
         # Clear database
         CacheEntry.objects.all().delete()
         CacheEventHistory.objects.all().delete()
+
+    def get_json_data(self, response):
+        """Helper method to extract JSON data from JsonResponse"""
+        return json.loads(response.content.decode())
 
     def test_listview_with_time_based_decorator(self):
         """Test time-based decorator on ListView get method"""
@@ -328,11 +337,11 @@ class TestClassBasedViewsIntegration(TestCase):
         # First call
         response1 = view.get(request)
         self.assertIsInstance(response1, JsonResponse)
-        data1 = response1.json()
+        data1 = self.get_json_data(response1)
 
         # Second call - should be cached
         response2 = view.get(request)
-        data2 = response2.json()
+        data2 = self.get_json_data(response2)
 
         # Should return same data
         self.assertEqual(data1, data2)
@@ -369,8 +378,8 @@ class TestClassBasedViewsIntegration(TestCase):
         response1 = view.dispatch(request)
         response2 = view.dispatch(request)
 
-        data1 = response1.json()
-        data2 = response2.json()
+        data1 = self.get_json_data(response1)
+        data2 = self.get_json_data(response2)
 
         self.assertEqual(data1, data2)
         self.assertTrue(data1["custom_view"])
@@ -397,9 +406,9 @@ class TestClassBasedViewsIntegration(TestCase):
         response2 = view.get_data(request, "electronics", item_id=123)  # Same params
         response3 = view.get_data(request, "books", item_id=456)  # Different params
 
-        data1 = response1.json()
-        data2 = response2.json()
-        data3 = response3.json()
+        data1 = self.get_json_data(response1)
+        data2 = self.get_json_data(response2)
+        data3 = self.get_json_data(response3)
 
         # Same params should return cached data
         self.assertEqual(data1, data2)
@@ -438,19 +447,19 @@ class TestClassBasedViewsIntegration(TestCase):
         base_response1 = base_view.get_base_data(request)
         base_response2 = base_view.get_base_data(request)
 
-        self.assertEqual(base_response1.json(), base_response2.json())
+        self.assertEqual(self.get_json_data(base_response1), self.get_json_data(base_response2))
 
         # Test child method caching
         child_response1 = child_view.get_child_data(request)
         child_response2 = child_view.get_child_data(request)
 
-        self.assertEqual(child_response1.json(), child_response2.json())
+        self.assertEqual(self.get_json_data(child_response1), self.get_json_data(child_response2))
 
         # Test inherited method caching
         inherited_response1 = child_view.get_base_data(request)
         inherited_response2 = child_view.get_base_data(request)
 
-        self.assertEqual(inherited_response1.json(), inherited_response2.json())
+        self.assertEqual(self.get_json_data(inherited_response1), self.get_json_data(inherited_response2))
 
         # Should have separate cache entries for each method
         cache_entries = CacheEntry.objects.all()
@@ -471,6 +480,10 @@ class TestViewIntegrationEdgeCases(TestCase):
         CacheEntry.objects.all().delete()
         CacheEventHistory.objects.all().delete()
 
+    def get_json_data(self, response):
+        """Helper method to extract JSON data from JsonResponse"""
+        return json.loads(response.content.decode())
+
     def test_view_with_post_request(self):
         """Test decorator behavior with POST requests"""
 
@@ -490,18 +503,18 @@ class TestViewIntegrationEdgeCases(TestCase):
         get_response1 = post_view(get_request)
         get_response2 = post_view(get_request)
 
-        self.assertEqual(get_response1.json(), get_response2.json())
+        self.assertEqual(self.get_json_data(get_response1), self.get_json_data(get_response2))
 
         # Test POST request
         post_request = self.factory.post("/test/", {"data": "test"})
         post_response1 = post_view(post_request)
         post_response2 = post_view(post_request)
 
-        self.assertEqual(post_response1.json(), post_response2.json())
-        self.assertEqual(post_response1.json()["method"], "POST")
+        self.assertEqual(self.get_json_data(post_response1), self.get_json_data(post_response2))
+        self.assertEqual(self.get_json_data(post_response1)["method"], "POST")
 
         # GET and POST should have different cache entries
-        self.assertNotEqual(get_response1.json(), post_response1.json())
+        self.assertNotEqual(self.get_json_data(get_response1), self.get_json_data(post_response1))
 
     def test_view_with_middleware_simulation(self):
         """Test decorator behavior with simulated middleware"""
@@ -521,8 +534,8 @@ class TestViewIntegrationEdgeCases(TestCase):
         response1 = middleware_view(request)
         response2 = middleware_view(request)
 
-        data1 = response1.json()
-        data2 = response2.json()
+        data1 = self.get_json_data(response1)
+        data2 = self.get_json_data(response2)
 
         self.assertEqual(data1, data2)
         self.assertEqual(data1["user_agent"], "Test Browser")
@@ -543,7 +556,7 @@ class TestViewIntegrationEdgeCases(TestCase):
         responses = []
         for _ in range(5):
             response = concurrent_view(request)
-            responses.append(response.json())
+            responses.append(self.get_json_data(response))
 
         # All responses should be identical (cached after first)
         first_response = responses[0]

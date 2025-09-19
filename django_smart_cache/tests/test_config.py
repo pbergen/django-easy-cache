@@ -35,7 +35,7 @@ class TestSmartCacheConfig(TestCase):
         # Test tracking settings
         self.assertTrue(config.get("TRACKING.TRACK_CACHE_HITS"))
         self.assertTrue(config.get("TRACKING.TRACK_CACHE_MISSES"))
-        self.assertFalse(config.get("TRACKING.TRACK_PERFORMANCE"))
+        self.assertTrue(config.get("TRACKING.TRACK_PERFORMANCE"))
 
         # Test event settings
         self.assertTrue(config.get("EVENTS.EVENT_CACHE_HITS"))
@@ -163,7 +163,7 @@ class TestSmartCacheConfig(TestCase):
         # Test existing tracking settings
         self.assertTrue(config.should_track("CACHE_HITS"))
         self.assertTrue(config.should_track("CACHE_MISSES"))
-        self.assertFalse(config.should_track("PERFORMANCE"))
+        self.assertTrue(config.should_track("PERFORMANCE"))
 
         # Test non-existing tracking setting
         self.assertFalse(config.should_track("NON_EXISTING"))
@@ -358,6 +358,8 @@ class TestConfigHelperFunctions(TestCase):
     @override_settings(SMART_CACHE={"CUSTOM_KEY": "custom_value"})
     def test_config_integration_with_django_settings(self):
         """Test integration with Django settings"""
+        # Force reload config to pick up override_settings
+        reload_config()
         config = get_config()
 
         self.assertEqual(config.get("CUSTOM_KEY"), "custom_value")

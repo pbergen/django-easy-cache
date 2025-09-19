@@ -87,11 +87,18 @@ class KeyGenerator:
                             param_str = f"{key}={safe_value}"
                             simple_values.append(param_str)
             else:
-                raise UncachableArgumentError(
-                    f"Argument of type '{type(arg).__name__}' for function "
-                    f"'{func.__qualname__}' is not automatically cachable. "
-                    f"Please use simple types, Django models, or implement a custom key generation strategy."
-                )
+                # Fallback to repr() for unknown objects
+                try:
+                    repr_value = repr(arg)
+                    safe_value = self._process_value(repr_value)
+                    if safe_value:
+                        simple_values.append(safe_value)
+                except Exception:
+                    raise UncachableArgumentError(
+                        f"Argument of type '{type(arg).__name__}' for function "
+                        f"'{func.__qualname__}' is not automatically cachable. "
+                        f"Please use simple types, Django models, or implement a custom key generation strategy."
+                    )
 
         # Process kwargs with basic validation
         for key, value in kwargs.items():
@@ -115,7 +122,7 @@ class KeyGenerator:
 
         # Hash if too long for cache key efficiency
         if len(str_value) > self.config.get("MAX_VALUE_LENGTH"):
-            value_hash = hashlib.sha256(str_value.encode()).hexdigest()[:16]
+            value_hash = hashlib.sha256(str_value.encode()).hexdigest()[:8]
             return f"_{value_hash}"
 
         # Minimal cleaning - only chars that break cache backends
