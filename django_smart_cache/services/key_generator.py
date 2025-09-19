@@ -40,7 +40,7 @@ class KeyGenerator:
         self.function_name = f"{func.__module__}.{func.__qualname__}"
         self.original_params = self._simple_params(func=func, args=args, kwargs=kwargs)
 
-        hashed_params = hashlib.sha256(self.original_params.encode()).hexdigest()[:8]
+        hashed_params = hashlib.sha256(self.original_params.encode()).hexdigest()[:16]
         key_parts = [self.function_name, hashed_params]
 
         # Add expiration date to key if provided (takes precedence over period)
@@ -87,11 +87,18 @@ class KeyGenerator:
                             param_str = f"{key}={safe_value}"
                             simple_values.append(param_str)
             else:
-                raise UncachableArgumentError(
-                    f"Argument of type '{type(arg).__name__}' for function "
-                    f"'{func.__qualname__}' is not automatically cachable. "
-                    f"Please use simple types, Django models, or implement a custom key generation strategy."
-                )
+                # Fallback to repr() for unknown objects
+                try:
+                    repr_value = repr(arg)
+                    safe_value = self._process_value(repr_value)
+                    if safe_value:
+                        simple_values.append(safe_value)
+                except Exception:
+                    raise UncachableArgumentError(
+                        f"Argument of type '{type(arg).__name__}' for function "
+                        f"'{func.__qualname__}' is not automatically cachable. "
+                        f"Please use simple types, Django models, or implement a custom key generation strategy."
+                    )
 
         # Process kwargs with basic validation
         for key, value in kwargs.items():

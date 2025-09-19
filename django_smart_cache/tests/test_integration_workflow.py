@@ -1,5 +1,6 @@
 """Complete workflow integration tests"""
 
+import json
 import time
 from datetime import datetime, timedelta
 from unittest.mock import patch
@@ -22,6 +23,10 @@ class TestCompleteWorkflowIntegration(TestCase):
         # Clear database
         CacheEntry.objects.all().delete()
         CacheEventHistory.objects.all().delete()
+
+    def get_json_data(self, response):
+        """Helper method to extract JSON data from JsonResponse"""
+        return json.loads(response.content.decode())
 
     def test_complete_django_application_workflow(self):
         """Test complete workflow as it would be used in a Django application"""
@@ -105,7 +110,7 @@ class TestCompleteWorkflowIntegration(TestCase):
         response1 = user_dashboard_view(request1)
         self.assertEqual(response1.status_code, 200)
 
-        data1 = response1.json()
+        data1 = self.get_json_data(response1)
         self.assertEqual(data1["user_id"], 1)
         self.assertIn("dashboard_data", data1)
         self.assertIn("daily", data1["dashboard_data"])
@@ -116,13 +121,13 @@ class TestCompleteWorkflowIntegration(TestCase):
         response2 = user_dashboard_view(request1)
         cached_response_time = time.time() - start_time
 
-        data2 = response2.json()
+        data2 = self.get_json_data(response2)
         self.assertEqual(data1, data2)  # Should be identical due to caching
 
         # Third request for different user - should use some cached data
         request2 = self.factory.get("/dashboard/?user_id=2")
         response3 = user_dashboard_view(request2)
-        data3 = response3.json()
+        data3 = self.get_json_data(response3)
 
         self.assertNotEqual(data1["user_id"], data3["user_id"])
         self.assertEqual(data3["user_id"], 2)
@@ -130,7 +135,7 @@ class TestCompleteWorkflowIntegration(TestCase):
         # Generate hourly report
         report_request = self.factory.get("/hourly-report/")
         report_response = hourly_report_view(report_request)
-        report_data = report_response.json()
+        report_data = self.get_json_data(report_response)
 
         self.assertEqual(report_data["report_type"], "hourly")
         self.assertEqual(report_data["users_processed"], 3)
@@ -296,7 +301,7 @@ class TestCompleteWorkflowIntegration(TestCase):
                 """Method that might fail"""
                 self.call_count += 1
 
-                if should_fail and self.call_count <= 1:
+                if should_fail:
                     raise ConnectionError("Service temporarily unavailable")
 
                 return {"success": True, "call_count": self.call_count, "timestamp": localtime().isoformat()}
@@ -321,8 +326,8 @@ class TestCompleteWorkflowIntegration(TestCase):
         response1 = robust_view(request)
         response2 = robust_view(request)
 
-        data1 = response1.json()
-        data2 = response2.json()
+        data1 = self.get_json_data(response1)
+        data2 = self.get_json_data(response2)
 
         self.assertEqual(data1, data2)  # Should be cached
         self.assertEqual(data1["status"], "success")
@@ -383,7 +388,7 @@ class TestCompleteWorkflowIntegration(TestCase):
             call_time = time.time() - start_time
             total_time += call_time
 
-            responses.append((category, response.json(), call_time))
+            responses.append((category, self.get_json_data(response), call_time))
 
         # Verify that repeated categories returned cached data
         tech_responses = [r for r in responses if r[0] == "tech"]

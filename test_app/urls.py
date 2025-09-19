@@ -15,7 +15,7 @@ urlpatterns = [
 ]
 
 # Debug Toolbar URLs in der HAUPTKONFIGURATION einbinden
-if settings.DEBUG:
+if settings.DEBUG_TOOLBAR_AVAILABLE:
     import debug_toolbar
 
     urlpatterns = [

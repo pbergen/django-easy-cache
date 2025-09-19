@@ -1,10 +1,14 @@
 """Django Smart Cache Configuration System"""
 
+import copy
 import threading
-from typing import Dict, Any, Optional
+import logging
+from typing import Any
 from django.conf import settings
 from django.core.cache import caches
 from django.core.exceptions import ImproperlyConfigured
+
+logger = logging.getLogger(__name__)
 
 
 class SmartCacheConfig:
@@ -19,38 +23,41 @@ class SmartCacheConfig:
         "KEY_PREFIX": "smart_cache",
         # Value length for each key
         "MAX_VALUE_LENGTH": 100,
+        "DEBUG_TOOLBAR_INTEGRATION": False,  # not implemented yes
         # Analytics & Monitoring
-        "DEBUG_TOOLBAR_INTEGRATION": True,
-        # Logging / TRACKING / ANALYTICS
         "TRACKING": {
-            "TRACK_CACHE_HITS": True,
+            "TRACK_CACHE_HITS": False,
             "TRACK_CACHE_MISSES": True,
             "TRACK_PERFORMANCE": False,
         },
         "EVENTS": {
-            "EVENT_CACHE_HITS": True,
-            "EVENT_CACHE_MISSES": True,
-            "EVENT_CACHE_ERRORS": True,
+            "EVENT_CACHE_HITS": False,
+            "EVENT_CACHE_MISSES": False,
+            "EVENT_CACHE_ERRORS": False,
         },
     }
 
     def __new__(cls):
         if cls._instance is None:
             with cls._lock:
-                cls._instance = super().__new__(cls)
-                cls._config = {}
-                cls._cache_backends = {}
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._config = {}
+                    cls._instance._cache_backends = {}
+                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):
-        self._load_config()
+        if not self._initialized:
+            self._load_config()
+            self._initialized = True
 
     def _load_config(self):
         """Load configuration from Django settings"""
         smart_cache_settings = getattr(settings, "SMART_CACHE", {})
 
         # Merge with defaults
-        self._config = self.DEFAULT_CONFIG.copy()
+        self._config = copy.deepcopy(self.DEFAULT_CONFIG)
         self._deep_update(base_dict=self._config, update_dict=smart_cache_settings)
 
         # Validate configuration
@@ -83,6 +90,8 @@ class SmartCacheConfig:
             except Exception as e:
                 if backend_name == self._config["DEFAULT_BACKEND"]:
                     raise ImproperlyConfigured(f"Cannot initialize default cache backend '{backend_name}': {e}")
+                else:
+                    logger.warning(f"Failed to initialize cache backend '{backend_name}': {e}")
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value"""
@@ -99,15 +108,18 @@ class SmartCacheConfig:
 
     def set(self, key: str, value: Any) -> None:
         """Set configuration value"""
-        keys = key.split(".")
-        config = self._config
+        with self._lock:
+            keys = key.split(".")
+            config = self._config
 
-        for k in keys[:-1]:
-            if k not in config:
-                config[k] = {}
-            config = config[k]
+            for k in keys[:-1]:
+                if k not in config:
+                    config[k] = {}
+                elif not isinstance(config[k], dict):
+                    raise ValueError(f"Cannot set '{key}': intermediate key '{k}' is not a dictionary")
+                config = config[k]
 
-        config[keys[-1]] = value
+            config[keys[-1]] = value
 
     def is_enabled(self, feature: str) -> bool:
         """Check if a feature is enabled"""
@@ -143,7 +155,17 @@ class SmartCacheConfig:
     def reload_config(self):
         """Reload configuration from Django settings"""
         with self._lock:
-            self._load_config()
+            # Backup current state
+            old_config = copy.deepcopy(self._config)
+            old_backends = self._cache_backends.copy()
+            try:
+                self._cache_backends.clear()
+                self._load_config()
+            except Exception as e:
+                # Restore old state on failure
+                self._config = old_config
+                self._cache_backends = old_backends
+                raise
 
     def get_full_config(self) -> dict[str, Any]:
         """Get full configuration (for debugging)"""

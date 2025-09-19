@@ -46,3 +46,6 @@ staticfiles
 *.zip
 .ruff_cache/
 .pytest_cache/
+
+#egg
+.django_smart_cache.egg-info/
