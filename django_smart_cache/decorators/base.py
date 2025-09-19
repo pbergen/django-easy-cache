@@ -53,10 +53,6 @@ class BaseCacheDecorator:
             try:
                 storage.set(cache_key, response, timeout)
             except Exception as e:
-                # Log error but don't break rendering
-                import logging
-
-                logger = logging.getLogger(__name__)
                 logger.warning(f"Failed to cache template response: {e}")
 
         return callback
@@ -189,10 +185,8 @@ class BaseCacheDecorator:
         lock_key = f"{cache_key}:lock"
         if self.storage.add(lock_key, 1, timeout=15):
             try:
-                # I have the lock, I generate the value
                 result = func(*args, **kwargs)
-
-                # ✅ Handle TemplateResponse caching without closure
+                # Handle TemplateResponse caching
                 if hasattr(result, "render") and callable(result.render):
                     callback = self._cache_template_response_callback(self.storage, cache_key, timeout)
                     result.add_post_render_callback(callback)

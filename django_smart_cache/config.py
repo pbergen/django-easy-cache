@@ -157,7 +157,7 @@ class SmartCacheConfig:
         """Reload configuration from Django settings"""
         with self._lock:
             # Backup current state
-            old_config = self._config.copy()
+            old_config = copy.deepcopy(self._config)
             old_backends = self._cache_backends.copy()
             try:
                 self._cache_backends.clear()

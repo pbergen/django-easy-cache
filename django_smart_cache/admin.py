@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.timezone import localtime
 from django.db.models import F, ExpressionWrapper, DurationField
 from django.utils import timezone
+
 
 from .models import CacheEntry, CacheEventHistory
 from .utils.format_time_left import format_time_left
@@ -33,7 +36,6 @@ class CacheEntryAdmin(admin.ModelAdmin):
         "hit_rate_display",
     ]
 
-    # ✅ Optimize queryset with annotations
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         # Annotate with calculated fields to avoid N+1 queries
@@ -57,7 +59,6 @@ class CacheEntryAdmin(admin.ModelAdmin):
 
         expires_at_local = localtime(obj.expires_at)
 
-        # ✅ Use annotated field if available
         if hasattr(obj, "time_remaining") and obj.time_remaining:
             total_seconds = obj.time_remaining.total_seconds()
             is_expired = total_seconds <= 0
@@ -72,8 +73,6 @@ class CacheEntryAdmin(admin.ModelAdmin):
             )
 
         # Format time remaining using cached calculation
-        from datetime import timedelta
-
         time_left_td = timedelta(seconds=total_seconds)
         time_left_str = format_time_left(time_left_td)
 

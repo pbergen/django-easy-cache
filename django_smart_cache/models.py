@@ -1,3 +1,4 @@
+import threading
 import time
 from datetime import timedelta
 from typing import Optional
@@ -11,6 +12,9 @@ User = get_user_model()
 
 class CacheEntry(models.Model):
     """Model to track cache entries for analytics and management"""
+
+    # Thread-local storage for per-thread time caching
+    _thread_local = threading.local()
 
     cache_key = models.CharField(max_length=255, db_index=True)
     original_params = models.TextField(blank=True, null=True)
@@ -28,7 +32,7 @@ class CacheEntry(models.Model):
         null=True, blank=True, db_index=True, help_text="When this cache entry expires and should be considered invalid"
     )
 
-    # ✅ Cache current time to avoid multiple DB calls
+    # Cache current time to avoid multiple DB calls
     _current_time_cache = None
     _current_time_cache_timestamp = None
 
@@ -36,7 +40,11 @@ class CacheEntry(models.Model):
     def _get_cached_current_time(cls):
         """Get cached current time to avoid multiple timezone.now() calls"""
         now = time.time()
-        if cls._current_time_cache is None or now - cls._current_time_cache_timestamp > 1:  # Cache for 1 second
+        if (
+            not hasattr(cls._thread_local, "current_time_cache")
+            or cls._current_time_cache_timestamp is None
+            or now - cls._current_time_cache_timestamp > 1
+        ):  # Cache for 1 second
             cls._current_time_cache = timezone.now()
             cls._current_time_cache_timestamp = now
         return cls._current_time_cache
