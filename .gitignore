@@ -159,4 +159,4 @@ _build
 
 # kilocode
 .kilocode/
-.kilocodemodes
+./.kilocodemodes
