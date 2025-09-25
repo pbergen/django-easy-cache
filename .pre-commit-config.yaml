@@ -10,7 +10,7 @@ repos:
       # Run the linter.
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        files: ^django-smart-cache/
+        files: ^easy-cache/
 
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.2.0
@@ -31,13 +31,13 @@ repos:
     rev: v3.20.0
     hooks:
       - id: pyupgrade
-        args: [ --py313-plus ]
+        args: [ --py311-plus ]
 
   - repo: https://github.com/adamchainz/django-upgrade
     rev: 1.25.0
     hooks:
       - id: django-upgrade
-        args: [ --target-version, "5.2" ]
+        args: [--target-version, "4.2"]
 
   - repo: https://github.com/ambient-innovation/boa-restrictor
     rev: v1.8.1
@@ -49,34 +49,34 @@ repos:
             /.*/tests/.*
             |.*/test_.*\.py
           )$
-        files: ^django-smart-cache/
+        files: ^easy-cache/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: check-ast
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: check-builtin-literals
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: check-case-conflict
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: check-docstring-first
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: check-executables-have-shebangs
       - id: check-illegal-windows-names
       - id: check-shebang-scripts-are-executable
       - id: check-json
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: check-merge-conflict
       - id: check-toml
       - id: end-of-file-fixer
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: fix-byte-order-marker
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: mixed-line-ending
-        files: ^django-smart-cache/
+        files: ^easy-cache/
       - id: no-commit-to-branch
-        args: ["--pattern", '^^(?!(?:feat|hotfix|refactor|bugfix|maintenance)/[\w\d\-_#]+).*$']
+        args: ["--pattern", '^^(?!(?:feature|hotfix|refactor|bugfix|maintenance)/[\w\d\-_#]+).*$']
       - id: trailing-whitespace
-        files: ^django-smart-cache/
+        files: ^easy-cache/
         stages: [pre-commit]
