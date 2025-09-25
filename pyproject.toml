@@ -2,30 +2,28 @@
 requires = ["setuptools>=80.9.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-include = ["django_smart_cache*"]
-exclude = ["test_app*", "test_project*", "tests*"]
 
 [project]
-name = "django-smart-cache"
+name = "django-easy-cache"
 version = "0.1.0"
 authors = [
-    {name = "Peter Bergen", email = "bergen@peterbergen-softwaresolutions.de"},
+    {name = 'Peter Bergen', email = 'bergen@peterbergen-softwaresolutions.de'},
 ]
-description = "Intelligent caching decorators for Django with real-time invalidation and dashboard optimization"
-readme = "README.md"
-license = {text = "MIT"}
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "MIT"
 requires-python = ">=3.11"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
     "Framework :: Django",
+    "Framework :: Django :: 4.2",
     "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -33,11 +31,11 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
-keywords = ["django", "cache", "caching", "performance", "realtime", "dashboard"]
+keywords = ["django", "cache", "caching", "performance"]
 
 dependencies = [
-    "Django>=5.1",
-    "cron-converter>=1.2.2",
+    'Django>=4.2',
+    'cron-converter>=1.2.2',
 ]
 
 [project.optional-dependencies]
@@ -58,6 +56,10 @@ dev = [
     "django-debug-toolbar",
     "django-extensions",
     "psycopg[binary]~=3.2",
+    'coverage',
+    'pre-commit',
+    'sphinx',
+    'sphinx-rtd-theme',
 ]
 redis = [
     "redis>=5.0.0",
@@ -68,10 +70,14 @@ postgresql = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pbergen/django-smart-cache"
-Repository = "https://github.com/pbergen/django-smart-cache.git"
-Bugtracker = 'https://github.com/pbergen/django-smart-cache/issues'
-Changelog = 'https://github.com/pbergen/django-smart-cache/CHANGES.md'
+'Homepage' = 'https://github.com/pbergen/django-easy-cache/'
+'Documentation' = 'https://django-easy-cache.readthedocs.io/en/latest/index.html'
+'Bugtracker' = 'https://github.com/pbergen/django-easy-cache/issues'
+'Changelog' = 'https://django-easy-cache.readthedocs.io/en/latest/features/changelog.html'
+
+[tool.setuptools.packages.find]
+include = ["easy_cache*"]
+exclude = ["staticfiles*", "test_app*", "tests*"]
 
 [tool.ruff]
 exclude = [
@@ -176,61 +182,6 @@ fixable = [
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Allow noqa's from "boa-restrictor" linter
-external = ["PBR"]
-
-[tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = [
-  # No docstring needed for __init__ files.
-  "D104",
-]
-"**/apps.py" = [
-  # No docstring needed for apps.py files.
-  "D100",
-  "D101",
-  "D102",
-]
-"**/tests/**.py" = [
-  # Lots of forbidden things should be okay in TESTS:
-  # No documentation needed in tests.
-  "D",
-  # Asserts should be allowed in tests.
-  "S101",
-  # Testing passwords should be allowed in tests.
-  "S106",
-  # Many function arguments are expected if a test uses many fixtures.
-  "PLR0913",
-  # "Magic values" are typical in tests.
-  "PLR2004",
-  # Tests do not need to annotate all types or return something.
-  "ANN001",
-  "ANN201",
-  "ANN003",
-  "ARG002",
-  "SLF001",
-]
-"**/urls.py" = [
-  "RUF005", # does not like default concatenation
-]
-"**/settings.py" = [
-  "ERA001", # comments in settings help.
-]
-"**/asgi.py" = [
-  "ANN", # KISS for now
-  "ERA001",
-]
-"**/wsgi.py" = [
-  "ANN", # KISS for now
-  "ERA001",
-]
-"**/websocket.py" = [
-  "ANN", # KISS for now
-  "ERA001",
-]
-"**/biss/models.py" = [
-  "F401", # Allow unused imports in the "big" models.py
-]
-
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
@@ -324,18 +275,96 @@ enable_error_code = [
   "explicit-override",              # Requires @override on overridden methods
 ]
 
-[[tool.mypy.overrides]]
-module = "*.tests.*"
-ignore_errors = true
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = [
+  # No docstring needed for __init__ files.
+  "D104",
+]
+"**/apps.py" = [
+  # No docstring needed for apps.py files.
+  "D100",
+  "D101",
+  "D102",
+]
+"**/tests/**.py" = [
+  # Lots of forbidden things should be okay in TESTS:
+  # No documentation needed in tests.
+  "D",
+  # Asserts should be allowed in tests.
+  "S101",
+  # Testing passwords should be allowed in tests.
+  "S106",
+  # Many function arguments are expected if a test uses many fixtures.
+  "PLR0913",
+  # "Magic values" are typical in tests.
+  "PLR2004",
+  # Tests do not need to annotate all types or return something.
+  "ANN001",
+  "ANN201",
+  "ANN003",
+  "ARG002",
+  "SLF001",
+]
+"**/urls.py" = [
+  "RUF005", # does not like default concatenation
+]
+"**/settings.py" = [
+  "ERA001", # comments in settings help.
+]
+"**/asgi.py" = [
+  "ANN", # KISS for now
+  "ERA001",
+]
+"**/wsgi.py" = [
+  "ANN", # KISS for now
+  "ERA001",
+]
+"**/websocket.py" = [
+  "ANN", # KISS for now
+  "ERA001",
+]
+".ambient-package-update/*.py" = [
+  # Checks for packages that are missing an __init__.py file
+  "INP001",
+]
+"docs/*.py" = [
+  # Checks for packages that are missing an __init__.py file
+  "INP001",
+]
 
-[[tool.mypy.overrides]]
-module = "apps.*.migrations.*"
-ignore_errors = true
+[tool.tox]
+legacy_tox_ini = """
+[testenv]
+# Django deprecation overview: https://www.djangoproject.com/download/
+deps =
+    django42: Django==4.2.*
+    django51: Django==5.1.*
+    django52: Django==5.2.*
+extras = dev,
+commands =
+    coverage run -m pytest --ds settings tests
+
+[gh-actions]
+python =
+    3.11: py311
+    3.12: py312
+    3.13: py313
+"""
 
 
-[[tool.mypy.overrides]]
-module = [
-  # This is a template for additional external libraries without stubs
+# ==== pytest ====
+[tool.pytest.ini_options]
+addopts = "-v --tb=short"
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_test.py"]
+
+norecursedirs = [
+  ".tox",
+  ".git",
+  "*/migrations/*",
+  "*/static/*",
+  "docs",
+  "venv",
 ]
 ignore_missing_imports = true
 
@@ -353,11 +382,17 @@ strict_settings = false
 
 [tool.coverage.run]
 branch = true
-include = [
-  "apps/*",
-  "config/*",
+parallel = true
+source = [
+    "easy_cache",
+    "tests",
 ]
 omit = [
+  "setup.py",
+  "*_test.py",
+  "tests.py",
+  "test_app/*",
+  "tests/*",
   "*/apps.py",
   "*/conftest.py",
   "*/migrations/*",
@@ -368,11 +403,7 @@ omit = [
 
 [tool.coverage.report]
 precision = 2
-fail_under = 100
 show_missing = true
-skip_covered = false
-skip_empty = true
-ignore_errors = true
 # Regexes for lines to exclude from consideration
 exclude_also = [
   # Don't complain if tests don't hit defensive assertion code:
@@ -385,19 +416,11 @@ exclude_also = [
 
 [tool.coverage.html]
 
-# ==== pytest ====
-[tool.pytest.ini_options]
-addopts = "-v --tb=short"
-DJANGO_SETTINGS_MODULE = "config.settings"
-python_files = ["tests.py", "test_*.py", "*_test.py"]
-
-norecursedirs = [
-  ".tox",
-  ".git",
-  "*/migrations/*",
-  "*/static/*",
-  "docs",
-  "venv",
+[tool.coverage.path]
+source = [
+    "django_easy_cache",
+    ".tox/**/site-packages",
 ]
+
 
 

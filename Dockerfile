@@ -4,7 +4,7 @@
 ARG PYTHON_MINOR_VERSION=3.11
 
 ### STAGE 1: Build python ###
-FROM ghcr.io/astral-sh/uv:python${PYTHON_MINOR_VERSION}-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python${PYTHON_MINOR_VERSION}-trixie-slim AS builder
 
 # Build arguments for controlling optional dependencies
 ARG UV_INSTALL_DEV=false
@@ -30,8 +30,8 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 # Copy project configuration files first (for better Docker layer caching)
 COPY --chown=app:app uv.lock pyproject.toml ./
 
-# Copy source code for the django_smart_cache package
-COPY --chown=app:app django_smart_cache/ ./django_smart_cache/
+# Copy source code for the django_easy_cache package
+COPY --chown=app:app easy_cache/ ./easy_cache/
 
 # Install the project's dependencies using the lockfile and settings
 RUN --mount=type=cache,target=/home/app/.cache/uv,uid=1000,gid=1000 \
@@ -56,7 +56,7 @@ COPY --chown=app:app . ./
 
 
 ### STAGE 2: Setup ###
-FROM ghcr.io/astral-sh/uv:python${PYTHON_MINOR_VERSION}-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python${PYTHON_MINOR_VERSION}-trixie-slim
 
 # Install required OS dependencies
 # We have to have "gettext" here as well to be able to run "makemigrations"

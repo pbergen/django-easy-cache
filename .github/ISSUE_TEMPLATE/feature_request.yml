@@ -1,5 +1,5 @@
 name: Feature Request
-description: Suggest a new feature or enhancement for Django Smart Cache
+description: Suggest a new feature or enhancement for Django Easy Cache
 title: "[FEATURE] "
 labels: ["enhancement", "feature-request"]
 body:
@@ -14,7 +14,7 @@ body:
       label: User Story
       description: Describe the feature as a user story (As a [user type], I want [goal] so that [benefit])
       placeholder: |
-        As a Django developer using smart caching,
+        As a Django developer using easy caching,
         I want to be able to [specific functionality],
         so that I can [benefit or outcome].
     validations:

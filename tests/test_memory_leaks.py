@@ -1,7 +1,7 @@
 import gc
 import weakref
 from django.test import TestCase
-from django_smart_cache.decorators.base import BaseCacheDecorator
+from easy_cache.decorators.base import BaseCacheDecorator
 
 
 class TestMemoryLeaks(TestCase):
@@ -31,7 +31,7 @@ class TestMemoryLeaks(TestCase):
 
     def test_callback_function_creation(self):
         """Test that callback function doesn't hold references"""
-        from django_smart_cache.services.storage_handler import StorageHandler
+        from easy_cache.services.storage_handler import StorageHandler
         from django.core.cache import cache
 
         storage = StorageHandler(cache)

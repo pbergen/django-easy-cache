@@ -13,7 +13,4 @@ build/
 .venv
 node_modules
 .DS_Store
-README.md
-CHANGELOG.md
-LICENSE.md
 .github/

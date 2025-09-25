@@ -1,5 +1,5 @@
 services:
-  # Django Smart Cache Development Environment
+  # Django Easy Cache Development Environment
   dev:
     build:
       context: .
@@ -8,7 +8,7 @@ services:
         UV_INSTALL_DEV: "1"
         UV_INSTALL_REDIS: "1"
         UV_INSTALL_POSTGRESQL: "1"
-    container_name: django-smart-cache-dev
+    container_name: django-easy-cache-dev
     volumes:
       # Package source code (live reload)
       - .:/app
@@ -30,7 +30,7 @@ services:
   # Redis for cache testing
   redis:
     image: redis:7-alpine
-    container_name: django-smart-cache-redis
+    container_name: django-easy-cache-redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
@@ -40,11 +40,11 @@ services:
   # PostgreSQL for advanced testing
   postgres:
     image: postgres:15-alpine
-    container_name: django-smart-cache-postgres
+    container_name: django-easy-cache-postgres
     environment:
-      POSTGRES_DB: smartcache_test
-      POSTGRES_USER: smartcache
-      POSTGRES_PASSWORD: smartcache_dev
+      POSTGRES_DB: easycache_test
+      POSTGRES_USER: easycache
+      POSTGRES_PASSWORD: easycache_dev
     ports:
       - "5432:5432"
     volumes:
@@ -63,7 +63,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: django-smart-cache-test
+    container_name: django-easy-cache-test
     volumes:
       - .:/app
       - uv_cache:/root/.cache/uv
@@ -83,7 +83,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: django-smart-cache-build
+    container_name: django-easy-cache-build
     volumes:
       - .:/app
       - build_output:/app/dist

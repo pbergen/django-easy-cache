@@ -1,8 +1,7 @@
 from django.test import TestCase
-from django.test.utils import override_settings
 from django.contrib.admin.sites import AdminSite
-from django_smart_cache.admin import CacheEntryAdmin
-from django_smart_cache.models import CacheEntry
+from easy_cache.admin import CacheEntryAdmin
+from easy_cache.models import CacheEntry
 from django.utils import timezone
 from datetime import timedelta
 import time

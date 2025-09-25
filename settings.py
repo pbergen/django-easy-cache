@@ -1,5 +1,5 @@
 """
-Django settings for django-smart-cache testing.
+Django settings for django-easy-cache testing.
 """
 
 import os
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_smart_cache",  # Our package
+    "easy_cache",  # Our package
     "test_app",  # Test application
 ]
 
@@ -75,15 +75,15 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "smartcache_test"),
-        "USER": os.environ.get("POSTGRES_USER", "smartcache"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "smartcache_dev"),
+        "NAME": os.environ.get("POSTGRES_DB", "easycache_test"),
+        "USER": os.environ.get("POSTGRES_USER", "easycache"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "easycache_dev"),
         "HOST": os.environ.get("POSTGRES_HOST", "postgres"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 
-# Cache configuration for testing django-smart-cache
+# Cache configuration for testing django-easy-cache
 CACHES = {
     "redis": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
@@ -124,7 +124,7 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS += [".".join([*ip.split(".")[:-1], "1"]) for ip in ips]
 
-SMART_CACHE = {
+easy_cache = {
     "TRACKING": {
         "TRACK_CACHE_HITS": True,
         "TRACK_CACHE_MISSES": True,

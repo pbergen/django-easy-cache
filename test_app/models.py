@@ -2,7 +2,7 @@ from django.db import models
 
 
 class TestModel(models.Model):
-    """A simple test model for testing django-smart-cache."""
+    """A simple test model for testing django-easy-cache."""
 
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
