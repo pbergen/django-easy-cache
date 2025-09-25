@@ -75,6 +75,10 @@ class BaseCacheDecorator:
         self.storage = StorageHandler(self.cache)
         self.analytics = AnalyticsTracker(self.config)
 
+    def get_cache_type(self) -> str:
+        """Get the cache type for this decorator - to be overridden by subclasses"""
+        raise NotImplementedError
+
     def _initialize_cache_backend(self, cache_name: str) -> Any:
         """Initialize cache backend with health check"""
         try:
@@ -178,6 +182,7 @@ class BaseCacheDecorator:
                 original_params=self.key_generator.original_params,
                 timeout=timeout,
                 execution_time_ms=execution_time,
+                cache_type=self.get_cache_type(),
             )
             return cached_result
 
@@ -203,6 +208,7 @@ class BaseCacheDecorator:
                     original_params=self.key_generator.original_params,
                     timeout=timeout,
                     execution_time_ms=execution_time,
+                    cache_type=self.get_cache_type(),
                 )
                 return result
             finally:

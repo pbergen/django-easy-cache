@@ -164,11 +164,6 @@ class TestModelListView(ListView):
     context_object_name = "models"
     paginate_by = 10
 
-    # @easy_cache.cron_based(cron_expression="*/5a * * * *")
+    @easy_cache.cron_based(cron_expression="*/5 * * * *")
     def get(self, request, *args, **kwargs):
-        self.expensive_data_processing(dict={"user": request.user})
         return super().get(request, *args, **kwargs)
-
-    @easy_cache.time_based(invalidate_at="21:26")
-    def expensive_data_processing(self, *, dict: dict):
-        return dict

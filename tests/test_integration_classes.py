@@ -130,32 +130,29 @@ class TestClassMethodIntegration(TestCase):
         class UserProcessor:
             """Test class for multiple instances"""
 
-            def __init__(self, user_id: int):
-                self.user_id = user_id
-
             @easy_cache.time_based(invalidate_at="10:00")
-            def get_profile(self):
+            def get_profile(self, user_id: int):
                 """Get user profile data"""
                 return {
-                    "user_id": self.user_id,
-                    "profile": f"Profile for user {self.user_id}",
+                    "user_id": user_id,
+                    "profile": f"Profile for user {user_id}",
                     "loaded_at": localtime().isoformat(),
                 }
 
         # Create multiple instances
-        processor1 = UserProcessor(user_id=1)
-        processor2 = UserProcessor(user_id=2)
-        processor3 = UserProcessor(user_id=1)  # Same user_id as processor1
+        processor1 = UserProcessor()
+        processor2 = UserProcessor()
+        processor3 = UserProcessor()  # Same user_id as processor1
 
         # Get profiles
-        profile1_a = processor1.get_profile()
-        profile2_a = processor2.get_profile()
-        profile3_a = processor3.get_profile()  # Different instance, same user_id
+        profile1_a = processor1.get_profile(user_id=1)
+        profile2_a = processor2.get_profile(user_id=2)
+        profile3_a = processor3.get_profile(user_id=1)  # Different instance, same user_id
 
         # Second calls should hit cache
-        profile1_b = processor1.get_profile()
-        profile2_b = processor2.get_profile()
-        profile3_b = processor3.get_profile()
+        profile1_b = processor1.get_profile(user_id=1)
+        profile2_b = processor2.get_profile(user_id=2)
+        profile3_b = processor3.get_profile(user_id=1)
 
         # Same instance calls should return same data
         self.assertEqual(profile1_a, profile1_b)
@@ -225,14 +222,11 @@ class TestClassMethodIntegration(TestCase):
         class BaseProcessor:
             """Base class with cached method"""
 
-            def __init__(self, base_id: int):
-                self.base_id = base_id
-
             @easy_cache.time_based(invalidate_at="15:00")
-            def get_base_data(self):
+            def get_base_data(self, base_id: int):
                 """Base method with caching"""
                 return {
-                    "base_id": self.base_id,
+                    "base_id": base_id,
                     "type": "base",
                     "data": "base_data",
                     "timestamp": localtime().isoformat(),
@@ -241,42 +235,38 @@ class TestClassMethodIntegration(TestCase):
         class ExtendedProcessor(BaseProcessor):
             """Extended class with additional cached method"""
 
-            def __init__(self, base_id: int, extended_id: int):
-                super().__init__(base_id)
-                self.extended_id = extended_id
-
             @easy_cache.cron_based(cron_expression="*/2 * * * *")
-            def get_extended_data(self):
+            def get_extended_data(self, base_id: int, extended_id: int):
                 """Extended method with caching"""
                 return {
-                    "base_id": self.base_id,
-                    "extended_id": self.extended_id,
+                    "base_id": base_id,
+                    "extended_id": extended_id,
                     "type": "extended",
                     "data": "extended_data",
                     "timestamp": localtime().isoformat(),
                 }
 
         # Test base class
-        base_proc = BaseProcessor(base_id=1)
-        base_data1 = base_proc.get_base_data()
-        base_data2 = base_proc.get_base_data()
+        base_proc = BaseProcessor()
+        base_data1 = base_proc.get_base_data(base_id=1)
+        base_data2 = base_proc.get_base_data(base_id=1)
 
         self.assertEqual(base_data1, base_data2)
         self.assertEqual(base_data1["type"], "base")
 
         # Test extended class
-        ext_proc = ExtendedProcessor(base_id=2, extended_id=20)
+        ext_proc = ExtendedProcessor()
 
         # Test inherited method
-        inherited_data1 = ext_proc.get_base_data()
-        inherited_data2 = ext_proc.get_base_data()
+        inherited_data1 = ext_proc.get_base_data(base_id=2)
+        inherited_data2 = ext_proc.get_base_data(base_id=2)
 
         self.assertEqual(inherited_data1, inherited_data2)
         self.assertEqual(inherited_data1["base_id"], 2)
 
         # Test extended method
-        extended_data1 = ext_proc.get_extended_data()
-        extended_data2 = ext_proc.get_extended_data()
+        extended_data1 = ext_proc.get_extended_data(base_id=2, extended_id=20)
+        extended_data2 = ext_proc.get_extended_data(base_id=2, extended_id=20)
 
         self.assertEqual(extended_data1, extended_data2)
         self.assertEqual(extended_data1["extended_id"], 20)

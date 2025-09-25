@@ -39,6 +39,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=10.5,
+            cache_type="unknown",
         )
 
         # Check CacheEntry was created
@@ -61,6 +62,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=10.5,
+            cache_type="unknown",
         )
 
         # Track another hit
@@ -71,6 +73,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=5.2,
+            cache_type="unknown",
         )
 
         # Check entry was updated
@@ -87,6 +90,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=10.5,
+            cache_type="unknown",
         )
 
         # Check event history was created
@@ -110,6 +114,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=10.5,
+            cache_type="unknown",
         )
 
         # Current implementation always tracks regardless of config
@@ -129,6 +134,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=150.7,
+            cache_type="unknown",
         )
 
         # Check CacheEntry was created
@@ -151,6 +157,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=150.7,
+            cache_type="unknown",
         )
 
         # Track another miss
@@ -161,6 +168,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=89.3,
+            cache_type="unknown",
         )
 
         # Check entry was updated
@@ -177,6 +185,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=150.7,
+            cache_type="unknown",
         )
 
         # Check event history was created
@@ -200,6 +209,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=150.7,
+            cache_type="unknown",
         )
 
         # Current implementation always tracks regardless of config
@@ -220,6 +230,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=150.0,
+            cache_type="unknown",
         )
 
         # Then track hits
@@ -230,6 +241,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=5.0,
+            cache_type="unknown",
         )
 
         self.tracker.track_hit(
@@ -239,6 +251,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=3.0,
+            cache_type="unknown",
         )
 
         # Check final counts
@@ -254,11 +267,11 @@ class TestAnalyticsTracker(TransactionTestCase):
         self.assertEqual(events[1].event_type, CacheEventHistory.EventType.HIT)
         self.assertEqual(events[2].event_type, CacheEventHistory.EventType.HIT)
 
-    @patch("django_easy_cache.services.analytics_tracker.logger")
+    @patch("easy_cache.services.analytics_tracker.logger")
     def test_track_hit_handles_database_error(self, mock_logger):
         """Test that track_hit handles database errors gracefully"""
         # Mock database error
-        with patch("django_easy_cache.models.CacheEntry.objects.get_or_create") as mock_get_or_create:
+        with patch("easy_cache.models.CacheEntry.objects.get_or_create") as mock_get_or_create:
             mock_get_or_create.side_effect = Exception("Database error")
 
             # Should not raise exception
@@ -269,16 +282,17 @@ class TestAnalyticsTracker(TransactionTestCase):
                 original_params="param=value",
                 timeout=3600,
                 execution_time_ms=10.5,
+                cache_type="unknown",
             )
 
             # Should log warning
             mock_logger.warning.assert_called_once()
 
-    @patch("django_easy_cache.services.analytics_tracker.logger")
+    @patch("easy_cache.services.analytics_tracker.logger")
     def test_track_miss_handles_database_error(self, mock_logger):
         """Test that track_miss handles database errors gracefully"""
         # Mock database error
-        with patch("django_easy_cache.models.CacheEntry.objects.get_or_create") as mock_get_or_create:
+        with patch("easy_cache.models.CacheEntry.objects.get_or_create") as mock_get_or_create:
             mock_get_or_create.side_effect = Exception("Database error")
 
             # Should not raise exception
@@ -289,6 +303,7 @@ class TestAnalyticsTracker(TransactionTestCase):
                 original_params="param=value",
                 timeout=3600,
                 execution_time_ms=150.7,
+                cache_type="unknown",
             )
 
             # Should log warning
@@ -308,6 +323,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=timeout,
             execution_time_ms=10.5,
+            cache_type="unknown",
         )
 
         after_tracking = localtime()
@@ -332,6 +348,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=timeout,
             execution_time_ms=10.5,
+            cache_type="unknown",
         )
 
         entry = CacheEntry.objects.get(cache_key=f"test_key_{timeout}")
@@ -346,6 +363,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=10.7859,
+            cache_type="unknown",
         )
 
         event = CacheEventHistory.objects.get(cache_key="test_key")
@@ -360,6 +378,7 @@ class TestAnalyticsTracker(TransactionTestCase):
             original_params="param=value",
             timeout=3600,
             execution_time_ms=None,
+            cache_type="unknown",
         )
 
         event = CacheEventHistory.objects.get(cache_key="test_key")

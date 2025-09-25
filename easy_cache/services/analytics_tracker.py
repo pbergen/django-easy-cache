@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.db import transaction
 
+from ..exceptions import InvalidCacheType
 from ..utils.validation import CacheInputValidator
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ class AnalyticsTracker:
         original_params: str,
         timeout: int,
         execution_time_ms: float,
+        cache_type: str,
     ) -> None:
         """Track cache hit synchronously"""
 
@@ -33,6 +35,11 @@ class AnalyticsTracker:
         try:
             validated_cache_key = CacheInputValidator.validate_cache_key(cache_key)
 
+            # Validate cache_type
+            valid_types = list(CacheEntry.CacheType.values)
+            if cache_type not in valid_types:
+                raise InvalidCacheType
+
             cache_entry, created = CacheEntry.objects.get_or_create(
                 cache_key=validated_cache_key,
                 function_name=function_name,
@@ -40,6 +47,7 @@ class AnalyticsTracker:
                     "cache_backend": cache_backend,
                     "original_params": original_params,
                     "timeout": timeout,
+                    "cache_type": cache_type,
                     "expires_at": timezone.now() + timedelta(seconds=timeout) if timeout and timeout > 0 else None,
                     "hit_count": 1,
                     "access_count": 1,
@@ -89,6 +97,7 @@ class AnalyticsTracker:
         original_params: str,
         timeout: int,
         execution_time_ms: float,
+        cache_type: str = "default",
     ) -> None:
         """Track cache miss"""
 
@@ -99,6 +108,11 @@ class AnalyticsTracker:
         try:
             validated_cache_key = CacheInputValidator.validate_cache_key(cache_key)
 
+            # Validate cache_type
+            valid_types = list(CacheEntry.CacheType.values)
+            if cache_type not in valid_types:
+                raise InvalidCacheType
+
             cache_entry, created = CacheEntry.objects.get_or_create(
                 cache_key=validated_cache_key,
                 function_name=function_name,
@@ -106,6 +120,7 @@ class AnalyticsTracker:
                     "cache_backend": cache_backend,
                     "original_params": original_params,
                     "timeout": timeout,
+                    "cache_type": cache_type,
                     "expires_at": timezone.now() + timedelta(seconds=timeout) if timeout and timeout > 0 else None,
                     "miss_count": 1,
                     "access_count": 1,

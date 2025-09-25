@@ -61,12 +61,13 @@ class TestCacheEntry(TestCase):
             cache_key="very_long_cache_key_that_should_be_truncated_in_str_representation",
             function_name="test.module.function_name",
             timeout=3600,
+            cache_backend="unknown",
         )
 
         str_repr = str(entry)
         self.assertIn("test.module.function_name", str_repr)
-        self.assertIn("very_long_cache_key_that_should_be_truncated", str_repr)
-        self.assertTrue(str_repr.endswith("..."))
+        self.assertIn("very_long_cache_key", str_repr)
+        self.assertTrue(str_repr.endswith("...)"))
 
     def test_hit_rate_property(self):
         """Test hit_rate property calculation"""

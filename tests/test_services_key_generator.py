@@ -325,7 +325,7 @@ class TestKeyGenerator(TestCase):
         self.assertTrue(key.startswith("easy_cache:"))
         self.assertIn("no_params_function", key)
 
-    @patch("django_easy_cache.services.key_generator.get_config")
+    @patch("easy_cache.services.key_generator.get_config")
     def test_max_value_length_config(self, mock_get_config):
         """Test that MAX_VALUE_LENGTH is respected from config"""
         mock_config = Mock()

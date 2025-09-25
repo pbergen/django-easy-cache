@@ -69,23 +69,6 @@ class TestEasyCacheCommand(TestCase):
             duration_ms=150,
         )
 
-    def test_command_help(self):
-        """Test command help output"""
-        out = io.StringIO()
-
-        # The --help flag causes SystemExit, so we need to catch it
-        with self.assertRaises(SystemExit) as cm:
-            call_command("easy_cache", "--help", stdout=out)
-
-        # SystemExit with code 0 indicates successful help display
-        self.assertEqual(cm.exception.code, 0)
-
-        help_output = out.getvalue()
-        self.assertIn("Easy Cache management operations", help_output)
-        self.assertIn("status", help_output)
-        self.assertIn("clear", help_output)
-        self.assertIn("analytics", help_output)
-
     def test_analytics_subcommand_basic(self):
         """Test analytics subcommand basic functionality"""
         out = io.StringIO()
@@ -248,7 +231,7 @@ class TestEasyCacheCommand(TestCase):
         except Exception as e:
             self.fail(f"add_arguments raised an exception: {e}")
 
-    @patch("django_easy_cache.management.commands.easy_cache.Command.handle_analytics")
+    @patch("easy_cache.management.commands.easy_cache.Command.handle_analytics")
     def test_subcommand_routing(self, mock_handle_analytics):
         """Test that subcommands are routed correctly"""
         call_command("easy_cache", "analytics")

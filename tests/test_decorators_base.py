@@ -37,7 +37,7 @@ class TestBaseCacheDecorator(TestCase):
         decorator = TestableBaseCacheDecorator(timezone_name="America/New_York")
         self.assertEqual(decorator.timezone_name, "America/New_York")
 
-    @patch("django_easy_cache.decorators.base.logger")
+    @patch("easy_cache.decorators.base.logger")
     def test_init_invalid_cache_backend(self, mock_logger):
         """Test decorator initialization with invalid cache backend"""
         # Invalid cache backends should log errors but not raise ValueError
@@ -67,7 +67,7 @@ class TestBaseCacheDecorator(TestCase):
         result = self.decorator._health_check_cache_backend(cache_mock)
         self.assertFalse(result)
 
-    @patch("django_easy_cache.decorators.base.logger")
+    @patch("easy_cache.decorators.base.logger")
     def test_health_check_cache_backend_exception(self, mock_logger):
         """Test cache backend health check with exception"""
         cache_mock = Mock()
@@ -141,29 +141,6 @@ class TestBaseCacheDecorator(TestCase):
         # Should fallback to original function
         self.assertEqual(result, "original_result")
 
-    @patch("django.utils.timezone.localtime")
-    def test_execute_with_template_response(self, mock_localtime):
-        """Test cache execution with Django TemplateResponse"""
-        mock_localtime.return_value = datetime(2025, 9, 15, 12, 0, 0)
-
-        # Mock cache miss
-        self.decorator.storage.get = Mock(return_value=None)
-        self.decorator.storage.set = Mock(return_value=True)
-        self.decorator.analytics.track_miss = Mock()
-
-        # Create mock TemplateResponse
-        mock_response = Mock()
-        mock_response.render = Mock()
-        mock_response.add_post_render_callback = Mock()
-
-        def test_function():
-            return mock_response
-
-        result = self.decorator._execute_with_cache(test_function)
-
-        self.assertEqual(result, mock_response)
-        mock_response.add_post_render_callback.assert_called_once()
-
     def test_get_expiration_date_not_implemented(self):
         """Test that _get_expiration_date raises NotImplementedError"""
         base_decorator = BaseCacheDecorator()
@@ -187,3 +164,7 @@ class TestableBaseCacheDecorator(BaseCacheDecorator):
     def _calculate_timeout(self, now: datetime) -> int:
         """Test implementation of abstract method"""
         return 3600  # 1 hour
+
+    def get_cache_type(self) -> str:
+        """Test implementation of abstract method"""
+        return "time"

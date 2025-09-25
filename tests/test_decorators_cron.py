@@ -66,7 +66,7 @@ class TestCronDecorator(TestCase):
         with self.assertRaises(InvalidCronExpression):
             CronDecorator._parse_cron_expression("invalid_cron", now)
 
-    @patch("django_easy_cache.decorators.cron.Cron")
+    @patch("easy_cache.decorators.cron.Cron")
     def test_get_expiration_date(self, mock_cron_class):
         """Test expiration date calculation"""
         # Mock the cron schedule
@@ -89,7 +89,7 @@ class TestCronDecorator(TestCase):
         mock_cron.schedule.assert_called_with(now)
         mock_schedule.next.assert_called_once()
 
-    @patch("django_easy_cache.decorators.cron.Cron")
+    @patch("easy_cache.decorators.cron.Cron")
     def test_calculate_timeout(self, mock_cron_class):
         """Test timeout calculation"""
         # Mock the cron schedule
@@ -195,7 +195,7 @@ class TestCronDecorator(TestCase):
                 decorator = CronDecorator(cron_expression=expression)
                 self.assertEqual(decorator.cron_expression, expression)
 
-    @patch("django_easy_cache.decorators.cron.Cron")
+    @patch("easy_cache.decorators.cron.Cron")
     def test_edge_case_next_execution_same_time(self, mock_cron_class):
         """Test edge case where next execution is the current time"""
         # Mock the cron schedule to return current time
@@ -215,7 +215,7 @@ class TestCronDecorator(TestCase):
         self.assertEqual(expiration, now)
         self.assertEqual(timeout, 0)  # No timeout needed
 
-    @patch("django_easy_cache.decorators.cron.Cron")
+    @patch("easy_cache.decorators.cron.Cron")
     def test_error_handling_in_parse_cron(self, mock_cron_class):
         """Test error handling in cron expression parsing"""
         # Mock Cron to raise an exception

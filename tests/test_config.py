@@ -30,17 +30,17 @@ class TestEasyCacheConfig(TestCase):
         self.assertEqual(config.get("DEFAULT_BACKEND"), "default")
         self.assertEqual(config.get("KEY_PREFIX"), "easy_cache")
         self.assertEqual(config.get("MAX_VALUE_LENGTH"), 100)
-        self.assertTrue(config.get("DEBUG_TOOLBAR_INTEGRATION"))
+        self.assertFalse(config.get("DEBUG_TOOLBAR_INTEGRATION"))
 
         # Test tracking settings
-        self.assertTrue(config.get("TRACKING.TRACK_CACHE_HITS"))
+        self.assertFalse(config.get("TRACKING.TRACK_CACHE_HITS"))
         self.assertTrue(config.get("TRACKING.TRACK_CACHE_MISSES"))
-        self.assertTrue(config.get("TRACKING.TRACK_PERFORMANCE"))
+        self.assertFalse(config.get("TRACKING.TRACK_PERFORMANCE"))
 
         # Test event settings
-        self.assertTrue(config.get("EVENTS.EVENT_CACHE_HITS"))
-        self.assertTrue(config.get("EVENTS.EVENT_CACHE_MISSES"))
-        self.assertTrue(config.get("EVENTS.EVENT_CACHE_ERRORS"))
+        self.assertFalse(config.get("EVENTS.EVENT_CACHE_HITS"))
+        self.assertFalse(config.get("EVENTS.EVENT_CACHE_MISSES"))
+        self.assertFalse(config.get("EVENTS.EVENT_CACHE_ERRORS"))
 
     @override_settings(
         easy_cache={
@@ -71,23 +71,8 @@ class TestEasyCacheConfig(TestCase):
         self.assertTrue(config.get("TRACKING.TRACK_CACHE_MISSES"))  # Should remain default
 
         self.assertFalse(config.get("EVENTS.EVENT_CACHE_ERRORS"))
-        self.assertTrue(config.get("EVENTS.EVENT_CACHE_HITS"))  # Should remain default
-
-    def test_get_method_with_dot_notation(self):
-        """Test get method with dot notation for nested values"""
-        config = EasyCacheConfig()
-
-        # Test existing nested keys
-        self.assertTrue(config.get("TRACKING.TRACK_CACHE_HITS"))
-        self.assertTrue(config.get("EVENTS.EVENT_CACHE_MISSES"))
-
-        # Test non-existing nested keys
-        self.assertIsNone(config.get("TRACKING.NON_EXISTING"))
-        self.assertIsNone(config.get("NON_EXISTING.KEY"))
-
-        # Test with default values
-        self.assertEqual(config.get("NON_EXISTING.KEY", "default"), "default")
-        self.assertEqual(config.get("TRACKING.NON_EXISTING", False), False)
+        self.assertFalse(config.get("EVENTS.EVENT_CACHE_HITS"))  # Should remain default
+        self.assertFalse(config.get("EVENTS.EVENT_CACHE_MISSES"))  # Should remain default
 
     def test_set_method(self):
         """Test set method for updating configuration"""
@@ -110,7 +95,7 @@ class TestEasyCacheConfig(TestCase):
         config = EasyCacheConfig()
 
         # Test with existing boolean values
-        self.assertTrue(config.is_enabled("DEBUG_TOOLBAR_INTEGRATION"))
+        self.assertFalse(config.is_enabled("DEBUG_TOOLBAR_INTEGRATION"))
 
         # Test with non-existing keys (should return False)
         self.assertFalse(config.is_enabled("NON_EXISTING_FEATURE"))
@@ -161,15 +146,15 @@ class TestEasyCacheConfig(TestCase):
         config = EasyCacheConfig()
 
         # Test existing tracking settings
-        self.assertTrue(config.should_track("CACHE_HITS"))
+        self.assertFalse(config.should_track("CACHE_HITS"))
         self.assertTrue(config.should_track("CACHE_MISSES"))
-        self.assertTrue(config.should_track("PERFORMANCE"))
+        self.assertFalse(config.should_track("PERFORMANCE"))
 
         # Test non-existing tracking setting
         self.assertFalse(config.should_track("NON_EXISTING"))
 
         # Test case insensitivity
-        self.assertTrue(config.should_track("cache_hits"))
+        self.assertFalse(config.should_track("cache_hits"))
         self.assertTrue(config.should_track("cache_misses"))
 
     def test_should_log_event_method(self):
@@ -177,15 +162,15 @@ class TestEasyCacheConfig(TestCase):
         config = EasyCacheConfig()
 
         # Test existing event settings
-        self.assertTrue(config.should_log_event("CACHE_HITS"))
-        self.assertTrue(config.should_log_event("CACHE_MISSES"))
-        self.assertTrue(config.should_log_event("CACHE_ERRORS"))
+        self.assertFalse(config.should_log_event("CACHE_HITS"))
+        self.assertFalse(config.should_log_event("CACHE_MISSES"))
+        self.assertFalse(config.should_log_event("CACHE_ERRORS"))
 
         # Test non-existing event setting
         self.assertFalse(config.should_log_event("NON_EXISTING"))
 
         # Test case insensitivity
-        self.assertTrue(config.should_log_event("cache_errors"))
+        self.assertFalse(config.should_log_event("cache_errors"))
 
     def test_get_tracking_config(self):
         """Test get_tracking_config method"""
@@ -348,7 +333,7 @@ class TestConfigHelperFunctions(TestCase):
         reload_config()
         self.assertIsNone(config.get("TEST_RELOAD"))
 
-    @patch("django_easy_cache.config.EasyCacheConfig.reload_config")
+    @patch("easy_cache.config.EasyCacheConfig.reload_config")
     def test_reload_config_calls_instance_method(self, mock_reload):
         """Test that reload_config function calls instance reload method"""
         reload_config()

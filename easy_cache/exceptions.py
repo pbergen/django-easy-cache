@@ -29,3 +29,9 @@ class UncachableArgumentError(TypeError, EasyCacheException):
     """Raised when a function argument is not of a cachable type."""
 
     pass
+
+
+class InvalidCacheType(EasyCacheException):
+    """Invalid cache type"""
+
+    pass

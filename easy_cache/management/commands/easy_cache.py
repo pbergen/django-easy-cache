@@ -171,6 +171,35 @@ class Command(BaseCommand):
                     self.stdout.write(f"Total Hits: {total_hits}")
                     self.stdout.write(f"Total Misses: {total_misses}")
                     self.stdout.write(f"Average Hit Rate: {avg_hit_rate:.1f}%")
+
+                    # Show statistics by cache type
+                    self.stdout.write(f"\nStatistics by Cache Type:")
+                    self.stdout.write("-" * 40)
+                    type_stats = (
+                        entries.values("cache_type")
+                        .annotate(
+                            count=models.Count("id"),
+                            total_hits=models.Sum("hit_count"),
+                            total_misses=models.Sum("miss_count"),
+                            avg_hits=models.Avg("hit_count"),
+                        )
+                        .order_by("cache_type")
+                    )
+
+                    for stat in type_stats:
+                        cache_type = stat["cache_type"]
+                        display_name = dict(CacheEntry.CacheType.choices).get(cache_type, cache_type)
+                        count = stat["count"]
+                        type_hits = stat["total_hits"] or 0
+                        type_misses = stat["total_misses"] or 0
+                        type_total = type_hits + type_misses
+                        type_hit_rate = (type_hits / type_total * 100) if type_total > 0 else 0
+
+                        self.stdout.write(
+                            f"  {display_name}: {count} entries, "
+                            f"{type_hits} hits, {type_misses} misses, "
+                            f"{type_hit_rate:.1f}% hit rate"
+                        )
                 else:
                     self.stdout.write("No cache entries found")
 

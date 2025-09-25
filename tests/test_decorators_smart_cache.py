@@ -17,6 +17,13 @@ class TestEasyCacheDecorator(TestCase):
         self.assertEqual(decorator.cache_name, "default")
         self.assertIsNotNone(decorator.cache)
 
+    @override_settings(
+        CACHES={
+            "custom_cache": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            },
+        }
+    )
     def test_init_custom_values(self):
         """Test initialization with custom values"""
         decorator = EasyCacheDecorator(key_template="{function_name}_{custom}", cache_backend="custom_cache")
@@ -36,6 +43,13 @@ class TestEasyCacheDecorator(TestCase):
         self.assertEqual(decorator.invalidate_at, "14:30")
         self.assertEqual(decorator.timezone_name, "Europe/Berlin")
 
+    @override_settings(
+        CACHES={
+            "test_cache": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            },
+        }
+    )
     def test_time_based_with_kwargs(self):
         """Test time_based with additional kwargs"""
         decorator = EasyCacheDecorator.time_based(invalidate_at="14:30", cache_backend="test_cache")
@@ -56,6 +70,13 @@ class TestEasyCacheDecorator(TestCase):
         self.assertEqual(decorator.cron_expression, "*/5 * * * *")
         self.assertEqual(decorator.timezone_name, "America/New_York")
 
+    @override_settings(
+        CACHES={
+            "custom_cache": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            },
+        }
+    )
     def test_cron_based_with_kwargs(self):
         """Test cron_based with additional kwargs"""
         decorator = EasyCacheDecorator.cron_based(cron_expression="*/5 * * * *", cache_backend="custom_cache")
@@ -165,7 +186,7 @@ class TestEasyCacheDecorator(TestCase):
                 "BACKEND": "django.core.cache.backends.dummy.DummyCache",
             },
             "test_cache": {
-                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
             },
         }
     )
@@ -194,6 +215,16 @@ class TestEasyCacheDecorator(TestCase):
         self.assertIsInstance(cron_decorator, CronDecorator)
         self.assertIsNot(time_decorator, cron_decorator)
 
+    @override_settings(
+        CACHES={
+            "test_cache": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            },
+            "redis_cache": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            },
+        }
+    )
     def test_parameter_forwarding_to_decorators(self):
         """Test that parameters are properly forwarded to specific decorators"""
         # Test time_based parameter forwarding

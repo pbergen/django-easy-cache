@@ -13,6 +13,11 @@ User = get_user_model()
 class CacheEntry(models.Model):
     """Model to track cache entries for analytics and management"""
 
+    class CacheType(models.TextChoices):
+        TIME = "time", "Time-based Cache"
+        CRON = "cron", "Cron-based Cache"
+        UNKNOWN = "unknown", "Unknown Cache"
+
     # Thread-local storage for per-thread time caching
     _thread_local = threading.local()
 
@@ -20,6 +25,13 @@ class CacheEntry(models.Model):
     original_params = models.TextField(blank=True, null=True)
     function_name = models.CharField(max_length=255, db_index=True)
     cache_backend = models.CharField(max_length=100, default="default")
+    cache_type = models.CharField(
+        max_length=50,
+        choices=CacheType.choices,
+        default=CacheType.UNKNOWN,
+        db_index=True,
+        help_text="Type of cache entry based on the decorator used",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_accessed = models.DateTimeField(auto_now=True)
@@ -54,10 +66,24 @@ class CacheEntry(models.Model):
             models.Index(fields=["hit_count", "miss_count"]),
             models.Index(fields=["cache_backend", "created_at"]),
             models.Index(fields=["last_accessed"]),
+            models.Index(fields=["cache_type", "created_at"]),
         ]
 
     def __str__(self):
-        return f"{self.function_name}: {self.cache_key[:50]}..."
+        return f"{self.get_cache_type_display()}: {self.function_name} ({self.cache_key[:30]}...)"
+
+    @property
+    def type(self):
+        """Property to access cache type for cleaner API"""
+        return self.cache_type
+
+    @type.setter
+    def type(self, value):
+        """Allow setting cache type through the type property"""
+        valid_types = list(self.CacheType.values)
+        if value not in valid_types:
+            raise ValueError(f"Invalid cache type: {value}. Valid types are: {valid_types}")
+        self.cache_type = value
 
     @property
     def hit_rate(self):
@@ -86,6 +112,28 @@ class CacheEntry(models.Model):
     def time_left_seconds(self) -> float:
         """Cached property for time left in seconds"""
         return self.time_left.total_seconds()
+
+    @classmethod
+    def get_by_type(cls, cache_type):
+        """Get all cache entries of a specific type"""
+        return cls.objects.filter(cache_type=cache_type)
+
+    @classmethod
+    def get_statistics_by_type(cls):
+        """Get statistics grouped by cache type"""
+        from django.db.models import Count, Avg, Sum
+
+        return (
+            cls.objects.values("cache_type")
+            .annotate(
+                count=Count("id"),
+                avg_hits=Avg("hit_count"),
+                avg_misses=Avg("miss_count"),
+                total_hits=Sum("hit_count"),
+                total_misses=Sum("miss_count"),
+            )
+            .order_by("cache_type")
+        )
 
 
 class CacheEventHistory(models.Model):

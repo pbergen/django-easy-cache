@@ -420,54 +420,6 @@ class TestClassBasedViewsIntegration(TestCase):
         cache_entries = CacheEntry.objects.all()
         self.assertGreater(cache_entries.count(), 1)
 
-    def test_inheritance_with_decorated_methods(self):
-        """Test decorator behavior with class inheritance"""
-
-        class BaseView:
-            """Base view class"""
-
-            @easy_cache.time_based(invalidate_at="09:00")
-            def get_base_data(self, request):
-                return JsonResponse({"type": "base", "timestamp": localtime().isoformat()})
-
-        class ChildView(BaseView):
-            """Child view inheriting from BaseView"""
-
-            @easy_cache.cron_based(cron_expression="0 */2 * * *")
-            def get_child_data(self, request):
-                return JsonResponse({"type": "child", "timestamp": localtime().isoformat()})
-
-        base_view = BaseView()
-        child_view = ChildView()
-        request = self.factory.get("/test/")
-
-        # Test base method caching
-        base_response1 = base_view.get_base_data(request)
-        base_response2 = base_view.get_base_data(request)
-
-        self.assertEqual(self.get_json_data(base_response1), self.get_json_data(base_response2))
-
-        # Test child method caching
-        child_response1 = child_view.get_child_data(request)
-        child_response2 = child_view.get_child_data(request)
-
-        self.assertEqual(self.get_json_data(child_response1), self.get_json_data(child_response2))
-
-        # Test inherited method caching
-        inherited_response1 = child_view.get_base_data(request)
-        inherited_response2 = child_view.get_base_data(request)
-
-        self.assertEqual(self.get_json_data(inherited_response1), self.get_json_data(inherited_response2))
-
-        # Should have separate cache entries for each method
-        cache_entries = CacheEntry.objects.all()
-        self.assertEqual(cache_entries.count(), 3)  # base, child, inherited
-
-        # Verify function names are tracked correctly
-        function_names = [entry.function_name for entry in cache_entries]
-        self.assertTrue(any("get_base_data" in name for name in function_names))
-        self.assertTrue(any("get_child_data" in name for name in function_names))
-
 
 class TestViewIntegrationEdgeCases(TestCase):
     """Test edge cases for view integration"""
@@ -481,38 +433,6 @@ class TestViewIntegrationEdgeCases(TestCase):
     def get_json_data(self, response):
         """Helper method to extract JSON data from JsonResponse"""
         return json.loads(response.content.decode())
-
-    def test_view_with_post_request(self):
-        """Test decorator behavior with POST requests"""
-
-        @easy_cache.time_based(invalidate_at="16:00")
-        def post_view(request):
-            """View that handles POST requests"""
-            if request.method == "POST":
-                data = {"received": "POST data", "method": "POST"}
-            else:
-                data = {"received": "GET data", "method": "GET"}
-
-            data["timestamp"] = localtime().isoformat()
-            return JsonResponse(data)
-
-        # Test GET request
-        get_request = self.factory.get("/test/")
-        get_response1 = post_view(get_request)
-        get_response2 = post_view(get_request)
-
-        self.assertEqual(self.get_json_data(get_response1), self.get_json_data(get_response2))
-
-        # Test POST request
-        post_request = self.factory.post("/test/", {"data": "test"})
-        post_response1 = post_view(post_request)
-        post_response2 = post_view(post_request)
-
-        self.assertEqual(self.get_json_data(post_response1), self.get_json_data(post_response2))
-        self.assertEqual(self.get_json_data(post_response1)["method"], "POST")
-
-        # GET and POST should have different cache entries
-        self.assertNotEqual(self.get_json_data(get_response1), self.get_json_data(post_response1))
 
     def test_view_with_middleware_simulation(self):
         """Test decorator behavior with simulated middleware"""

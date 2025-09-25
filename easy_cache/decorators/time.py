@@ -36,10 +36,16 @@ class TimeDecorator(BaseCacheDecorator):
     def __init__(self, invalidate_at: str, timezone_name: str | None = None, cache_backend: str = "default") -> None:
         if not re.match(r"^([01]\d|2[0-3]):([0-5]\d)$", invalidate_at):
             raise InvalidTimeExpression(
-                f"Invalid time format! 'HH:MM' was expected, but ‘{invalidate_at}’ was received."
+                f"Invalid time format! 'HH:MM' was expected, but '{invalidate_at}' was received."
             )
         self.invalidate_at = invalidate_at
         super().__init__(timezone_name, cache_backend)
+
+    def get_cache_type(self) -> str:
+        """Return cache type for time-based decorator"""
+        from easy_cache.models import CacheEntry
+
+        return CacheEntry.CacheType.TIME
 
     def _get_expiration_date(self, now: datetime) -> datetime:
         """Calculate expiration date based on next invalidation time"""

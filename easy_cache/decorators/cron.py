@@ -44,6 +44,12 @@ class CronDecorator(BaseCacheDecorator):
         self.cron_expression = cron_expression
         super().__init__(timezone_name, cache_backend)
 
+    def get_cache_type(self) -> str:
+        """Return cache type for cron-based decorator"""
+        from easy_cache.models import CacheEntry
+
+        return CacheEntry.CacheType.CRON
+
     def _get_expiration_date(self, now: datetime) -> datetime:
         """Calculate expiration date based on the next cron execution"""
         return self._parse_cron_expression(self.cron_expression, now).next()

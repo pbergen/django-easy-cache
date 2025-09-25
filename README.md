@@ -121,18 +121,19 @@ def get_live_metrics():
 easy_cache = {
     "DEFAULT_BACKEND": "default",
     "KEY_PREFIX": "easy_cache",
-    # Analytics & Monitoring
-    "ANALYTICS_ENABLED": True,
-    "PERFORMANCE_MONITORING": True,
-    "DEBUG_TOOLBAR_INTEGRATION": True,
-    # Cache Key
+    # Value length for each key
     "MAX_VALUE_LENGTH": 100,
-    # Logging / TRACKING / ANALYTICS
+    "DEBUG_TOOLBAR_INTEGRATION": False,  # not implemented yes
+    # Analytics & Monitoring
     "TRACKING": {
-        "TRACK_CACHE_HITS": True,
+        "TRACK_CACHE_HITS": False,
         "TRACK_CACHE_MISSES": True,
-        "TRACK_ERRORS": True,
-        "TRACK_PERFORMANCE": True,
+        "TRACK_PERFORMANCE": False,
+    },
+    "EVENTS": {
+        "EVENT_CACHE_HITS": False,
+        "EVENT_CACHE_MISSES": False,
+        "EVENT_CACHE_ERRORS": False,
     },
 }
 ```
