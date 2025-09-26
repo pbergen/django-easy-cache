@@ -70,7 +70,8 @@ RUN apt-get update && \
       # Translations dependencies:
       gettext \
       git \
-      locales && \
+      locales \
+      make && \
     sed -i -e "s/# en_GB.UTF-8.*/en_GB.UTF-8 UTF-8/" /etc/locale.gen && \
     sed -i -e "s/# de_DE.UTF-8.*/de_DE.UTF-8 UTF-8/" /etc/locale.gen && \
     locale-gen de_DE.UTF-8 &&\
