@@ -19,12 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Robust error handling with graceful degradation
 
 ### Features
-- `@smart_cache.time_based()` decorator for daily invalidation at specific times
-- `@smart_cache.cron_based()` decorator for flexible cron-based invalidation
+- `@easy_cache.time_based()` decorator for daily invalidation at specific times
+- `@easy_cache.cron_based()` decorator for flexible cron-based invalidation
 - Automatic cache key generation with collision avoidance
 - Database models for cache analytics (CacheEntry, CacheEventHistory)
 - Management commands: `status`, `analytics`, `clear`
-- Django Admin interface at `/admin/django_smart_cache/`
+- Django Admin interface at `/admin/django_easy_cache/`
 
 ### Technical
 - Built on Django's cache framework for backend compatibility

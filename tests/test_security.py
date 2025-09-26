@@ -1,5 +1,5 @@
 import pytest
-from django_smart_cache.utils.validation import CacheInputValidator
+from easy_cache.utils.validation import CacheInputValidator
 
 
 class TestCacheInputValidator:

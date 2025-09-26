@@ -5,27 +5,13 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.generic import ListView
 
-from django_smart_cache import smart_cache
+from easy_cache import easy_cache
 from .models import TestModel
 
 
 def index(request):
     """Simple index view."""
-    return render(request, "test_app/index.html", {"title": "Django Smart Cache Test Project"})
-
-
-class TestModelListView(ListView):
-    """Class-based view for testing smart_cache with CBVs."""
-
-    model = TestModel
-    template_name = "test_app/test_model_list.html"
-    context_object_name = "models"
-    paginate_by = 10
-
-    # @smart_cache.cron_based(cron_expression="*/5a * * * *")
-    @smart_cache.time_based(invalidate_at="21:26", cache_backend="redis")
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    return render(request, "test_app/index.html", {"title": "Django Easy Cache Test Project"})
 
 
 class DataProcessor:
@@ -34,7 +20,7 @@ class DataProcessor:
     def __init__(self, user_id: int):
         self.user_id = user_id
 
-    @smart_cache.time_based(
+    @easy_cache.time_based(
         invalidate_at="02:00",
     )
     def get_user_stats(self):
@@ -56,7 +42,7 @@ class DataProcessor:
             "calculated_at": timezone.now().isoformat(),
         }
 
-    @smart_cache.cron_based(cron_expression="*/1 * * * *")
+    @easy_cache.cron_based(cron_expression="*/1 * * * *")
     def get_live_metrics(self, metric_type: str):
         """Live-Metriken alle 15 Minuten aktualisieren"""
         time.sleep(0.3)
@@ -67,7 +53,7 @@ class DataProcessor:
             "updated_at": timezone.now().isoformat(),
         }
 
-    @smart_cache.time_based(
+    @easy_cache.time_based(
         invalidate_at="00:00",
     )
     def generate_daily_report(self, date_str: str):
@@ -81,7 +67,7 @@ class DataProcessor:
         }
 
 
-@smart_cache.time_based(
+@easy_cache.time_based(
     invalidate_at="22:40",
 )
 def test_basic_time_cache(request):
@@ -101,7 +87,7 @@ def test_basic_time_cache(request):
     )
 
 
-@smart_cache.cron_based(cron_expression="*/5 * * * *")
+@easy_cache.cron_based(cron_expression="*/5 * * * *")
 def test_basic_cron_cache(request):
     """Test der Grundfunktionalität - Ihr Use-Case!"""
     # Simuliere teure Operation
@@ -168,3 +154,16 @@ def test_class_method_cache(request):
             "note": "Subsequent calls should be much faster due to caching!",
         }
     )
+
+
+class TestModelListView(ListView):
+    """Class-based view for testing easy_cache with CBVs."""
+
+    model = TestModel
+    template_name = "test_app/test_model_list.html"
+    context_object_name = "models"
+    paginate_by = 10
+
+    @easy_cache.cron_based(cron_expression="*/5 * * * *")
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug or unexpected behavior in Django Smart Cache
+description: Report a bug or unexpected behavior in Django Easy Cache
 title: "[BUG] "
 labels: ["bug", "needs-triage"]
 body:
@@ -23,8 +23,8 @@ body:
       label: Steps to Reproduce
       description: Detailed steps to reproduce the bug
       placeholder: |
-        1. Set up Django Smart Cache with...
-        2. Create a function with @smart_cache.time_based(...)
+        1. Set up Django Easy Cache with...
+        2. Create a function with @easy_cache.time_based(...)
         3. Call the function...
         4. Observe the error...
     validations:
@@ -56,7 +56,7 @@ body:
       render: python
       placeholder: |
         # Your minimal code sample here
-        @smart_cache.time_based(invalidate_at="14:00")
+        @easy_cache.time_based(invalidate_at="14:00")
         def my_function():
             # problematic code
             pass
@@ -69,12 +69,12 @@ body:
       label: Environment Information
       description: Please provide details about your environment
       placeholder: |
-        - Django Smart Cache version: 
-        - Django version: 
-        - Python version: 
-        - Cache backend (Redis/Memcached/Database): 
-        - Operating System: 
-        - Database: 
+        - Django Easy Cache version:
+        - Django version:
+        - Python version:
+        - Cache backend (Redis/Memcached/Database):
+        - Operating System:
+        - Database:
     validations:
       required: true
 
@@ -94,16 +94,16 @@ body:
     id: cache-configuration
     attributes:
       label: Cache Configuration
-      description: Your Django cache and Smart Cache configuration
+      description: Your Django cache and Easy Cache configuration
       render: python
       placeholder: |
         # settings.py
         CACHES = {
             # your cache configuration
         }
-        
-        SMART_CACHE = {
-            # your smart cache configuration
+
+        easy_cache = {
+            # your easy cache configuration
         }
 
   - type: dropdown
@@ -126,7 +126,7 @@ body:
       options:
         - label: I have searched existing issues to ensure this is not a duplicate
           required: true
-        - label: I have tested this with the latest version of Django Smart Cache
+        - label: I have tested this with the latest version of Django Easy Cache
           required: false
         - label: I can provide additional debugging information if needed
           required: false

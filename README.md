@@ -1,13 +1,15 @@
-# Django Smart Cache
+# Django Easy Cache
 
 Intelligent caching decorators for Django with time-based invalidation, cron-based scheduling, and comprehensive analytics.
 Transform your Django application's caching from manual, error-prone boilerplate into elegant, maintainable decorators.
 
-[![PyPI version](https://badge.fury.io/py/django-smart-cache.svg)](https://pypi.org/project/django-smart-cache/)
-[![Python versions](https://img.shields.io/pypi/pyversions/django-smart-cache.svg)](https://pypi.org/project/django-smart-cache/)
-[![Django versions](https://img.shields.io/badge/Django-4.2%20%7C%205.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/pbergen/django-smart-cache/workflows/Tests/badge.svg)](https://github.com/pbergen/django-smart-cache/actions)
+[![PyPI version](https://badge.fury.io/py/django-easy-cache.svg)](https://pypi.org/project/django-easy-cache/)
+[![Python versions](https://img.shields.io/pypi/pyversions/django-easy-cache.svg)](https://pypi.org/project/django-easy-cache/)
+[![Django versions](https://img.shields.io/badge/Django-4.2%20%7C%205.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
+
+[![Tests](https://github.com/pbergen/django-easy-cache/workflows/Tests/badge.svg)](https://github.com/pbergen/django-easy-cache/actions)
+[![Documentation Status](https://readthedocs.org/projects/django-easy-cache/badge/?version=latest)](https://django-easy-cache.readthedocs.io/en/latest/?badge=latest)
 
 ## ✨ Features
 
@@ -25,7 +27,7 @@ Transform your Django application's caching from manual, error-prone boilerplate
 ### Installation
 
 ```bash
-pip install django-smart-cache
+pip install django-easy-cache
 ```
 
 ### Basic Setup
@@ -35,7 +37,7 @@ Add to your `INSTALLED_APPS`:
 ```python
 INSTALLED_APPS = [
     # ... your apps
-    "django_smart_cache",
+    "easy_cache",
 ]
 ```
 
@@ -45,7 +47,7 @@ Run migrations:
 python manage.py migrate
 ```
 
-### Your First Smart Cache
+### Your First Easy Cache
 
 Replace this caching boilerplate:
 
@@ -75,11 +77,11 @@ def get_data(location_id: int):
 With this:
 
 ```python
-# AFTER: 3 lines with Smart Cache
-from django_smart_cache import smart_cache
+# AFTER: 3 lines with Easy Cache
+from easy_cache import easy_cache
 
 
-@smart_cache.time_based(
+@easy_cache.time_based(
     invalidate_at="13:00",
 )
 def get_data(location_id: int):
@@ -91,10 +93,10 @@ def get_data(location_id: int):
 ### Time-Based Caching
 
 ```python
-from django_smart_cache import smart_cache
+from easy_cache import easy_cache
 
 
-@smart_cache.time_based(
+@easy_cache.time_based(
     invalidate_at="14:00",  # Invalidate daily at 14:00
 )
 def get_daily_report(date: str):
@@ -104,10 +106,10 @@ def get_daily_report(date: str):
 ### Cron-Based Caching
 
 ```python
-from django_smart_cache import smart_cache
+from easy_cache import easy_cache
 
 
-@smart_cache.cron_based(cron_expression="*/30 * * * *")
+@easy_cache.cron_based(cron_expression="*/30 * * * *")
 def get_live_metrics():
     return fetch_realtime_data()
 ```
@@ -116,21 +118,22 @@ def get_live_metrics():
 
 ```python
 # settings.py
-SMART_CACHE = {
+easy_cache = {
     "DEFAULT_BACKEND": "default",
-    "KEY_PREFIX": "smart_cache",
-    # Analytics & Monitoring
-    "ANALYTICS_ENABLED": True,
-    "PERFORMANCE_MONITORING": True,
-    "DEBUG_TOOLBAR_INTEGRATION": True,
-    # Cache Key
+    "KEY_PREFIX": "easy_cache",
+    # Value length for each key
     "MAX_VALUE_LENGTH": 100,
-    # Logging / TRACKING / ANALYTICS
+    "DEBUG_TOOLBAR_INTEGRATION": False,  # not implemented yes
+    # Analytics & Monitoring
     "TRACKING": {
-        "TRACK_CACHE_HITS": True,
+        "TRACK_CACHE_HITS": False,
         "TRACK_CACHE_MISSES": True,
-        "TRACK_ERRORS": True,
-        "TRACK_PERFORMANCE": True,
+        "TRACK_PERFORMANCE": False,
+    },
+    "EVENTS": {
+        "EVENT_CACHE_HITS": False,
+        "EVENT_CACHE_MISSES": False,
+        "EVENT_CACHE_ERRORS": False,
     },
 }
 ```
@@ -141,31 +144,31 @@ SMART_CACHE = {
 
 ```bash
 # Check cache system health
-python manage.py smart_cache status
+python manage.py easy_cache status
 
 # Detailed analytics report
-python manage.py smart_cache analytics --days=7 --format=table
+python manage.py easy_cache analytics --days=7 --format=table
 
 # JSON format for automation
-python manage.py smart_cache analytics --format=json
+python manage.py easy_cache analytics --format=json
 ```
 
 ### Cache Management
 
 ```bash
 # Clear all cache entries and database records
-python manage.py smart_cache clear --all
+python manage.py easy_cache clear --all
 
 # Clear only cache entries and their database records
-python manage.py smart_cache clear --cache-entries
+python manage.py easy_cache clear --cache-entries
 
 # Clear only event history
-python manage.py smart_cache clear --event-history
+python manage.py easy_cache clear --event-history
 ```
 
 ## 🎛️ Django Admin Integration
 
-Smart Cache provides a Django Admin interface at `/admin/django_smart_cache/`:
+Easy Cache provides a Django Admin interface at `/admin/django_easy_cache/`:
 
 - **Cache Entries**: Monitor cache performance, hit rates, and access patterns
 - **Event History**: Analyze cache events and performance metrics
@@ -195,16 +198,16 @@ You can control which optional dependencies are installed during the Docker buil
 docker-compose build
 
 # Build with only core dependencies
-docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=false -t django-smart-cache .
+docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=false -t django-easy-cache .
 
 # Build with development dependencies only
-docker build --build-arg UV_INSTALL_DEV=true --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=false -t django-smart-cache .
+docker build --build-arg UV_INSTALL_DEV=true --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=false -t django-easy-cache .
 
 # Build with Redis support only
-docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=true --build-arg UV_INSTALL_POSTGRESQL=false -t django-smart-cache .
+docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=true --build-arg UV_INSTALL_POSTGRESQL=false -t django-easy-cache .
 
 # Build with PostgreSQL support only
-docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=true -t django-smart-cache .
+docker build --build-arg UV_INSTALL_DEV=false --build-arg UV_INSTALL_REDIS=false --build-arg UV_INSTALL_POSTGRESQL=true -t django-easy-cache .
 
 # Custom docker-compose override
 ```yml
@@ -227,22 +230,7 @@ These can be combined as needed. For example, you can install both dev and Redis
 
 ## 🧪 Testing Support
 
-Smart Cache includes comprehensive testing utilities:
-
-```python
-from django.test import TestCase
-from django_smart_cache.tests.conftest import CacheTestMixin
-
-
-class MyCacheTest(CacheTestMixin, TestCase):
-    def test_cache_behavior(self):
-        # Test cache hit/miss behavior
-        with self.assert_cache_miss("test_key"):
-            result = expensive_function()
-
-        with self.assert_cache_hit("test_key"):
-            result = expensive_function()
-```
+Easy Cache includes comprehensive testing utilities:
 
 ## 🔒 Security Features
 
@@ -251,11 +239,11 @@ class MyCacheTest(CacheTestMixin, TestCase):
 
 ## 📊 Performance Analytics
 
-Smart Cache provides cache analytics:
+Easy Cache provides cache analytics:
 
 ```bash
 # View cache performance
-python manage.py smart_cache analytics
+python manage.py easy_cache analytics
 
 # Output:
 # Cache Analytics (last 7 days)
@@ -264,7 +252,7 @@ python manage.py smart_cache analytics
 # Average Hit Rate: 78.5%
 
 # JSON format for automation
-python manage.py smart_cache analytics --format=json
+python manage.py easy_cache analytics --format=json
 ```
 
 ## 🏗️ Architecture
@@ -277,7 +265,7 @@ python manage.py smart_cache analytics --format=json
 - **`TimeDecorator`**: Time-based caching implementation
 - **`CronDecorator`**: Cron-based caching implementation
 - **`BaseCacheDecorator`**: Refactored base class using separated components
-- **`SmartCacheConfig`**: Centralized configuration management
+- **`EasyCacheConfig`**: Centralized configuration management
 - **Analytics Models**: Database tracking of cache performance
 
 ### Design Patterns
@@ -289,13 +277,6 @@ python manage.py smart_cache analytics --format=json
 - **Factory Pattern**: Cache backend initialization
 - **Composition Pattern**: Separated concerns for better maintainability
 - **Single Responsibility**: Each component has one clear purpose
-
-### Performance Optimizations
-
-- **Atomic Database Operations**: Single UPSERT operations instead of multiple queries
-- **Synchronous Analytics**: Removed threading complexity for Django compatibility
-- **Graceful Error Handling**: Specific exception handling prevents cache failures
-- **Memory Efficient**: Reduced object creation and optimized data structures
 
 ## 🤝 Contributing
 
@@ -310,22 +291,11 @@ We welcome contributions!
 7. Push to the branch (`git push origin feature/amazing-feature`)
 8. Open a Pull Request
 
-## 📊 Development Status
-
-- ✅ **Core Functionality**: Time-based and cron-based caching
-- ✅ **Cache Key Validation**: Basic cache key validation and length limits
-- ✅ **Analytics**: Database performance tracking with atomic operations
-- ✅ **Type Safety**: Complete type annotations
-- ✅ **Performance**: Optimized database operations
-- ✅ **Architecture**: Modular design with separated concerns
-- ✅ **Error Handling**: Robust exception handling with graceful degradation
-- ✅ **Management Commands**: Status, analytics, and clear operations
-
 ## 🐛 Bug Reports & Feature Requests
 
-- **Bug Reports**: [GitHub Issues](https://github.com/pbergen/django-smart-cache/issues)
-- **Feature Requests**: [GitHub Discussions](https://github.com/pbergen/django-smart-cache/discussions)
-- **Security Issues**: Email security@django-smart-cache.com
+- **Bug Reports**: [GitHub Issues](https://github.com/pbergen/django-easy-cache/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/pbergen/django-easy-cache/discussions)
+- **Security Issues**: Email security@django-easy-cache.com
 
 ## 📄 License
 
@@ -337,6 +307,7 @@ Inspired by real-world caching challenges in Django applications. Built on the s
 
 ## 🔗 Links
 
-- **PyPI**: https://pypi.org/project/django-smart-cache/
-- **GitHub**: https://github.com/pbergen/django-smart-cache
+- **PyPI**: https://pypi.org/project/django-easy-cache/
+- **GitHub**: https://github.com/pbergen/django-easy-cache
+- **Full documentation**: https://django-easy-cache.readthedocs.io/en/latest/index.html
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
