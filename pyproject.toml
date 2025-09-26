@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-easy-cache"
-version = "0.1.0a2"
+version = "0.1.0"
 authors = [
     {name = 'Peter Bergen', email = 'bergen@peterbergen-softwaresolutions.de'},
 ]
