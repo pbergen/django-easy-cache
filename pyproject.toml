@@ -341,6 +341,12 @@ deps =
     django51: Django==5.1.*
     django52: Django==5.2.*
 extras = dev,
+passenv =
+    POSTGRES_DB
+    POSTGRES_USER
+    POSTGRES_PASSWORD
+    POSTGRES_HOST
+    POSTGRES_PORT
 commands =
     coverage run -m pytest --ds settings tests
 
