@@ -1,9 +1,13 @@
-name: Unit tests
+name: CI/CD
 
 on:
   push:
     branches:
     - main
+    tags:
+      - '*.*.*'           # Release tags: 1.0.0
+      - '*.*.*-alpha-*'   # Alpha tags: 1.0.0-alpha-1
+      - '*.*.*-beta-*'    # Beta tags: 1.0.0-beta-1
   pull_request:
 
 jobs:
@@ -105,3 +109,73 @@ jobs:
           python -m coverage report --fail-under=85.0
           echo "## Coverage summary" >> $GITHUB_STEP_SUMMARY
           python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
+
+  build:
+    name: Build distribution
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [linting, validate_migrations, tests, coverage]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+
+  publish-to-testpypi:
+    name: Publish to TestPyPI
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && (contains(github.ref_name, '-alpha-') || contains(github.ref_name, '-beta-'))
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/django-easy-cache
+
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-alpha-') && !contains(github.ref_name, '-beta-')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/django-easy-cache
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
