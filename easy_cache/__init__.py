@@ -9,7 +9,7 @@ This package provides advanced caching decorators with features like:
 - Management commands for cache operations
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.0-alpha-01"
 __author__ = "Peter Bergen"
 __email__ = "bergen@peterbergen-softwaresolutions.de"
 __license__ = "MIT"
