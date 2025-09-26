@@ -69,6 +69,10 @@ redis = [
 postgresql = [
     "psycopg2-binary>=2.9.0",
 ]
+publishing = [
+    "build",
+    "twine",
+]
 
 [project.urls]
 'Homepage' = 'https://github.com/pbergen/django-easy-cache/'

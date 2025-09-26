@@ -10,6 +10,8 @@ FROM ghcr.io/astral-sh/uv:python${PYTHON_MINOR_VERSION}-trixie-slim AS builder
 ARG UV_INSTALL_DEV=false
 ARG UV_INSTALL_REDIS=false
 ARG UV_INSTALL_POSTGRESQL=false
+ARG UV_INSTALL_PUBLISHING=false
+ARG UV_INSTALL_ALL=false
 
 # Set work directory
 WORKDIR /app
@@ -44,6 +46,9 @@ RUN --mount=type=cache,target=/home/app/.cache/uv,uid=1000,gid=1000 \
     fi; \
     if [ "$UV_INSTALL_POSTGRESQL" = "true" ] || [ "$UV_INSTALL_POSTGRESQL" = "1" ]; then \
         EXTRAS="$EXTRAS postgresql"; \
+    fi; \
+    if [ "$UV_INSTALL_PUBLISHING" = "true" ] || [ "$UV_INSTALL_PUBLISHING" = "1" ]; then \
+        UV_ARGS="$EXTRAS  publishing"; \
     fi; \
     if [ -n "$EXTRAS" ]; then \
         uv sync --frozen $(echo "$EXTRAS" | sed 's/^ *//' | sed 's/ *$//' | sed 's/ / --extra /g' | sed 's/^/--extra /'); \
