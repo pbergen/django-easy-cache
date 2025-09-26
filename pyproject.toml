@@ -61,6 +61,7 @@ dev = [
     'pre-commit',
     'sphinx',
     'sphinx-rtd-theme',
+    'm2r2',
 ]
 redis = [
     "redis>=5.0.0",

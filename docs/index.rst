@@ -4,4 +4,4 @@
    :maxdepth: 1
    :caption: Contents:
 
-   features/changelog.md
+.. mdinclude:: ../CHANGELOG.md
