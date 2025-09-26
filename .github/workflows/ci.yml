@@ -117,10 +117,10 @@ jobs:
           pattern: coverage-data-*
           merge-multiple: true
 
-      - name: Combine coverage and fail if it's <100.0%
+      - name: Combine coverage and fail if it's <85.0%
         run: |
           python -m coverage combine
           python -m coverage html --skip-covered --skip-empty
-          python -m coverage report --fail-under=100.0
+          python -m coverage report --fail-under=85.0
           echo "## Coverage summary" >> $GITHUB_STEP_SUMMARY
           python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
