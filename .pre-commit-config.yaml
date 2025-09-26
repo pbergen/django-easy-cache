@@ -76,7 +76,7 @@ repos:
       - id: mixed-line-ending
         files: ^easy-cache/
       - id: no-commit-to-branch
-        args: ["--pattern", '^^(?!(?:feature|hotfix|refactor|bugfix|maintenance)/[\w\d\-_#]+).*$']
+        args: ["--pattern", '^^(?!(?:feature|hotfix|refactor|bugfix|maintenance)/[\w\d\-_#]+|develop|main).*$']
       - id: trailing-whitespace
         files: ^easy-cache/
         stages: [pre-commit]

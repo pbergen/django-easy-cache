@@ -36,6 +36,7 @@ keywords = ["django", "cache", "caching", "performance"]
 dependencies = [
     'Django>=4.2',
     'cron-converter>=1.2.2',
+    'django-environ>=0.11.0',
 ]
 
 [project.optional-dependencies]
@@ -342,11 +343,7 @@ deps =
     django52: Django==5.2.*
 extras = dev,
 passenv =
-    POSTGRES_DB
-    POSTGRES_USER
-    POSTGRES_PASSWORD
-    POSTGRES_HOST
-    POSTGRES_PORT
+    DATABASE_URL
 commands =
     coverage run -m pytest --ds settings tests
 

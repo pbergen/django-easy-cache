@@ -5,6 +5,9 @@ Django settings for django-easy-cache testing.
 import os
 from pathlib import Path
 import socket
+import environ
+
+env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent
@@ -72,16 +75,7 @@ TEMPLATES = [
 # WSGI_APPLICATION = 'wsgi.application'
 
 # Database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "easycache_test"),
-        "USER": os.environ.get("POSTGRES_USER", "easycache"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "easycache_dev"),
-        "HOST": os.environ.get("POSTGRES_HOST", "postgres"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-    }
-}
+DATABASES = {"default": env.db("DATABASE_URL", default="psql://easycache:easycache_dev@postgres:5432/easycache_test")}
 
 # Cache configuration for testing django-easy-cache
 CACHES = {
