@@ -8,7 +8,8 @@ Transform your Django application's caching from manual, error-prone boilerplate
 [![Python versions](https://img.shields.io/pypi/pyversions/django-easy-cache.svg)](https://pypi.org/project/django-easy-cache/)
 [![Django versions](https://img.shields.io/badge/Django-4.2%20%7C%205.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
 
-[![Tests](https://github.com/pbergen/django-easy-cache/workflows/Tests/badge.svg)](https://github.com/pbergen/django-easy-cache/actions)
+[![Coverage](https://img.shields.io/badge/Coverage-86.64%25-success)](https://github.com/pbergen/django-easy-cache/actions?workflow=Unit%20tests)
+[![Tests](https://github.com/pbergen/django-easy-cache/workflows/Unit%20tests/badge.svg)](https://github.com/pbergen/django-easy-cache/actions)
 [![Documentation Status](https://readthedocs.org/projects/django-easy-cache/badge/?version=latest)](https://django-easy-cache.readthedocs.io/en/latest/?badge=latest)
 
 ## ✨ Features
