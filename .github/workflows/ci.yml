@@ -21,6 +21,8 @@ jobs:
         run: pip install pre-commit
 
       - name: Run pre-commit hooks
+        env:
+          SKIP: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' && 'no-commit-to-branch' || '' }}
         run: pre-commit run --all-files
 
   validate_migrations:
