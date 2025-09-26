@@ -8,6 +8,7 @@ services:
         UV_INSTALL_DEV: "1"
         UV_INSTALL_REDIS: "1"
         UV_INSTALL_POSTGRESQL: "1"
+        UV_INSTALL_PUBLISHING: "1"
     container_name: django-easy-cache-dev
     volumes:
       # Package source code (live reload)

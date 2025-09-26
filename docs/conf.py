@@ -25,7 +25,7 @@ settings.configure(
         "django.contrib.sessions",
         "django.contrib.messages",
         "django.contrib.staticfiles",
-        "django_easy_cache",
+        "easy_cache",
     ],
     SECRET_KEY="ASDFjklö123456890",
 )
