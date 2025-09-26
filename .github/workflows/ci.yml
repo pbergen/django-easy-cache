@@ -1,9 +1,14 @@
-name: Unit tests
+name: CI/CD
 
 on:
   push:
     branches:
     - main
+    tags:
+      - '*.*.*'           # Release tags: 1.0.0
+      - '*.*.*a*'         # Alpha tags: 1.0.0a1
+      - '*.*.*b*'         # Beta tags: 1.0.0b1
+      - '*.*.*rc*'        # Release candidate: 1.0.0rc1
   pull_request:
 
 jobs:
@@ -18,10 +23,58 @@ jobs:
           python-version: "3.12"
 
       - name: Install required packages
-        run: pip install pre-commit
+        run: pip install pre-commit packaging
 
       - name: Run pre-commit hooks
         run: pre-commit run --all-files
+
+      - name: Validate PEP 440 version format
+        run: |
+          python -c "
+          import tomllib
+          import re
+          from packaging.version import Version
+
+          # Check pyproject.toml version
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+
+          pyproject_version = data['project']['version']
+          print(f'Validating pyproject.toml version: {pyproject_version}')
+
+          try:
+              Version(pyproject_version)
+              print('✅ pyproject.toml version is PEP 440 compliant')
+          except Exception as e:
+              print(f'❌ pyproject.toml version is NOT PEP 440 compliant: {e}')
+              exit(1)
+
+          # Check __init__.py version
+          with open('easy_cache/__init__.py', 'r') as f:
+              init_content = f.read()
+
+          version_match = re.search(r'__version__ = [\"\'](.*?)[\"\']', init_content)
+          if not version_match:
+              print('❌ No __version__ found in easy_cache/__init__.py')
+              exit(1)
+
+          init_version = version_match.group(1)
+          print(f'Validating __init__.py version: {init_version}')
+
+          try:
+              Version(init_version)
+              print('✅ __init__.py version is PEP 440 compliant')
+          except Exception as e:
+              print(f'❌ __init__.py version is NOT PEP 440 compliant: {e}')
+              exit(1)
+
+          # Check versions match
+          if pyproject_version != init_version:
+              print(f'❌ Version mismatch: pyproject.toml has {pyproject_version}, __init__.py has {init_version}')
+              exit(1)
+
+          print('✅ All versions match and are PEP 440 compliant')
+          "
 
   validate_migrations:
     name: Validate migrations
@@ -105,3 +158,73 @@ jobs:
           python -m coverage report --fail-under=85.0
           echo "## Coverage summary" >> $GITHUB_STEP_SUMMARY
           python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
+
+  build:
+    name: Build distribution
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [linting, validate_migrations, tests, coverage]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+
+  publish-to-testpypi:
+    name: Publish to TestPyPI
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && (contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'rc'))
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/django-easy-cache
+
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/django-easy-cache
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
