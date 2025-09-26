@@ -1,0 +1,432 @@
+[build-system]
+requires = ["setuptools>=80.9.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "django-easy-cache"
+version = "0.1.0"
+authors = [
+    {name = 'Peter Bergen', email = 'bergen@peterbergen-softwaresolutions.de'},
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "MIT"
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+keywords = ["django", "cache", "caching", "performance"]
+
+dependencies = [
+    'Django>=4.2',
+    'cron-converter>=1.2.2',
+]
+
+[project.optional-dependencies]
+dev = [
+    "django-stubs>=5.2.2",
+    "django-stubs[compatible-mypy]~=5.2",
+    "pytest",
+    "pytest-cov",
+    "pytest-django",
+    "pytest-mock",
+    "pytest-randomly",
+    "pytest-xdist",
+    "ruff",
+    "types-python-dateutil",
+    "ipython",
+    "factory_boy",
+    "time-machine",
+    "django-debug-toolbar",
+    "django-extensions",
+    "psycopg[binary]~=3.2",
+    'coverage',
+    'pre-commit',
+    'sphinx',
+    'sphinx-rtd-theme',
+]
+redis = [
+    "redis>=5.0.0",
+    "django-redis>=5.4.0",
+]
+postgresql = [
+    "psycopg2-binary>=2.9.0",
+]
+
+[project.urls]
+'Homepage' = 'https://github.com/pbergen/django-easy-cache/'
+'Documentation' = 'https://django-easy-cache.readthedocs.io/en/latest/index.html'
+'Bugtracker' = 'https://github.com/pbergen/django-easy-cache/issues'
+'Changelog' = 'https://django-easy-cache.readthedocs.io/en/latest/features/changelog.html'
+
+[tool.setuptools.packages.find]
+include = ["easy_cache*"]
+exclude = ["staticfiles*", "test_app*", "tests*"]
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "*/migrations/*"
+]
+
+# Same as Black.
+line-length = 120
+
+# Assume Python 3.11.
+target-version = "py311"
+
+[tool.ruff.lint]
+# Select all codes by default.
+# If you're unsure about any error you get while linting, look for its code in the search
+#  bar at https://docs.astral.sh/ruff/rules/ for an explanation before deciding whether to
+#  ignore or fix it.
+select = ["ALL"]
+
+# Add any code to ignore. Please justify ignored codes with comments where possible.
+ignore = [
+  # Conflicts with Django domain-driven design.
+  "TID252",
+  # Allow scripts.
+  "EXE001",
+  "EXE002",
+  # Class attributes are a standard in Django and instances don't typically modify them.
+  "RUF012",
+  # Magic methods are self-explanatory and don't typically need a docstring.
+  "D105",
+  # No need for docstrings in modules.
+  "D100",
+  # No need for docstrings in most __init__s.
+  "D107",
+  # Nested classes are usually Django's Meta, which doesn't need a docstring.
+  "D106",
+  "D203", # conflicts with D211
+  "D212", # conflicts with D213
+
+  # Restrictive formatting for TODOs.
+  "TD002",
+  "TD004",
+  # Not all TODOs have an associated issue.
+  "TD003",
+  # Redundant with EM101, which is more explicit.
+  "TRY003",
+  # The following rules are disabled as per recommendation of ruff as they conflict with
+  #  the ruff formatter.
+  # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  "W191",
+  "E111",
+  "E114",
+  "E117",
+  "D206",
+  "Q000",
+  "Q001",
+  "Q002",
+  "Q003",
+  "COM812",
+  "COM819",
+  "ISC001",
+  "ISC002",
+]
+
+# Add any linting error code here if you feel it would be safe to automatically fix.
+#  Even if an autofix isn't currently available, it might come in future ruff versions.
+fixable = [
+  "INT001",
+  "I001",
+  "INP001",
+  "RET505",
+  "RSE102",
+  "PLR5501",
+  "F401",
+  "SIM201",
+  "TD004",
+  "PT001",
+  "PT023",
+  "UP035",
+]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Exclude Django migration files
+exclude = ["migrations/*.py"]
+
+[tool.mypy]
+mypy_path = ["$MYPY_CONFIG_FILE_DIR/apps"]
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
+python_version = "3.11"
+strict = true
+namespace_packages = true           # Enables PEP 420 style namespace packages
+ignore_missing_imports = true       # Some external packages are not supported
+check_untyped_defs = true           # Also checks untyped definitions
+extra_checks = true                 # Enables additional checks https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-extra-checks
+strict_equality = true              # Strict equality checking
+strict_optional = true              # Disables checking of optional types and None values. With this option, mypy generally does not check the use of None values - it is treated as compatible with any type.
+
+disallow_any_explicit = true        # Disallows explicit Any types
+disallow_incomplete_defs = true     # Disallows incomplete function definitions
+disallow_subclassing_any = false
+disallow_untyped_decorators = true  # Disallows untyped decorators
+disallow_untyped_defs = true        # Disallows untyped function definitions
+# Setting this to true forces us to type untyped libraries if we pass anything from it as parameter in a decorated function/method (e.g. a classmethod).
+disallow_any_decorated = false      # Prevents functions that have Any in their signature after decorator transformation.
+
+warn_incomplete_stub = false        # Warns about incomplete stubs
+warn_no_return = true               # Warns about missing return statements
+warn_redundant_casts = true         # Warns about redundant casts
+warn_return_any = true              # Warns about Any return values
+warn_unreachable = true             # Warns about unreachable code
+warn_unused_configs = true          # Warns about unused configurations
+warn_unused_ignores = true          # Warns about unused # type: ignore
+
+### Pydantic
+follow_imports = "silent"
+disallow_any_generics = true
+no_implicit_reexport = true
+
+enable_error_code = [
+  # Code Quality & Security
+  "ignore-without-code",            # Requires error code with # type: ignore
+  "redundant-expr",                 # Detects redundant expressions
+  "unused-awaitable",               # Warns about non-awaited async functions
+  "truthy-bool",                    # Warns about redundant bool() calls
+  "truthy-iterable",                # Warns about redundant truthiness checks on iterables
+  "redundant-self",                 # Detects redundant self parameters
+
+  # Type-Safety
+  "type-arg",                       # Strict generic type checking
+  "valid-type",                     # Checks for valid type annotations
+  "comparison-overlap",             # Warns about impossible comparisons
+  "no-any-return",                  # Very strict: no Any returns allowed
+  "possibly-undefined",             # Warns about possibly undefined variables
+
+  # Code Structure
+  "return-value",                   # Consistent return values
+  "assignment",                     # Better assignment checking
+
+  # Imports & Modules
+  "import-untyped",                 # Warns about imports from untyped modules
+  "import-not-found",               # More explicit import errors
+
+  # Performance & Best Practices
+  "literal-required",               # Requires literal types where appropriate
+  # ❌ Mypy warns here
+  #  def handle_status(status: str) -> None:
+  #      if status == "active":
+  #          ...
+  #      elif status == "inactive":
+  #          ...
+  #
+  #  ✅ Better with Literal
+  #  def handle_status(status: Literal["active", "inactive"]) -> None:
+  #      if status == "active":
+  #          ...
+
+  "misc",                           # Various additional checks
+
+  # Documentation
+  "explicit-override",              # Requires @override on overridden methods
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = [
+  # No docstring needed for __init__ files.
+  "D104",
+]
+"**/apps.py" = [
+  # No docstring needed for apps.py files.
+  "D100",
+  "D101",
+  "D102",
+]
+"**/tests/**.py" = [
+  # Lots of forbidden things should be okay in TESTS:
+  # No documentation needed in tests.
+  "D",
+  # Asserts should be allowed in tests.
+  "S101",
+  # Testing passwords should be allowed in tests.
+  "S106",
+  # Many function arguments are expected if a test uses many fixtures.
+  "PLR0913",
+  # "Magic values" are typical in tests.
+  "PLR2004",
+  # Tests do not need to annotate all types or return something.
+  "ANN001",
+  "ANN201",
+  "ANN003",
+  "ARG002",
+  "SLF001",
+]
+"**/urls.py" = [
+  "RUF005", # does not like default concatenation
+]
+"**/settings.py" = [
+  "ERA001", # comments in settings help.
+]
+"**/asgi.py" = [
+  "ANN", # KISS for now
+  "ERA001",
+]
+"**/wsgi.py" = [
+  "ANN", # KISS for now
+  "ERA001",
+]
+"**/websocket.py" = [
+  "ANN", # KISS for now
+  "ERA001",
+]
+".ambient-package-update/*.py" = [
+  # Checks for packages that are missing an __init__.py file
+  "INP001",
+]
+"docs/*.py" = [
+  # Checks for packages that are missing an __init__.py file
+  "INP001",
+]
+
+[tool.tox]
+legacy_tox_ini = """
+[testenv]
+# Django deprecation overview: https://www.djangoproject.com/download/
+deps =
+    django42: Django==4.2.*
+    django51: Django==5.1.*
+    django52: Django==5.2.*
+extras = dev,
+passenv =
+    POSTGRES_DB
+    POSTGRES_USER
+    POSTGRES_PASSWORD
+    POSTGRES_HOST
+    POSTGRES_PORT
+commands =
+    coverage run -m pytest --ds settings tests
+
+[gh-actions]
+python =
+    3.11: py311
+    3.12: py312
+    3.13: py313
+"""
+
+
+# ==== pytest ====
+[tool.pytest.ini_options]
+addopts = "-v --tb=short"
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_test.py"]
+
+norecursedirs = [
+  ".tox",
+  ".git",
+  "*/migrations/*",
+  "*/static/*",
+  "docs",
+  "venv",
+]
+ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+strict_settings = false
+
+
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = [
+    "easy_cache",
+    "tests",
+]
+omit = [
+  "setup.py",
+  "*_test.py",
+  "tests.py",
+  "test_app/*",
+  "tests/*",
+  "*/apps.py",
+  "*/conftest.py",
+  "*/migrations/*",
+  "*/tests/*",
+  "*/__init__.py",
+  "config/settings.py",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+# Regexes for lines to exclude from consideration
+exclude_also = [
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise AssertionError",
+  "raise NotImplementedError",
+  # Don't check type hinting imports
+  "if typing.TYPE_CHECKING:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.coverage.html]
+
+[tool.coverage.path]
+source = [
+    "django_easy_cache",
+    ".tox/**/site-packages",
+]
+
+
+

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .api-links {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .api-links a {
+            display: block;
+            margin: 0.5rem 0;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .api-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ title }}</h1>
+        <p>Test environment for django-easy-cache package</p>
+    </div>
+
+    <div class="content">
+        <h2>Welcome to Django Easy Cache Test Project</h2>
+        <p>This is a test environment for developing and testing the django-easy-cache package.</p>
+
+        <h3>Available Test APIs:</h3>
+        <div class="api-links">
+            <a href="/admin/">⚙️ Django Admin</a>
+            <a href="/api/models/time_basic_cache">⏳️ Time Based Cache</a>
+            <a href="api/models/cron_basic_cache">⏳️ Cron Based Cache</a>
+            <a href="api/test/class-methods/">⏳️ Class Method Based Cache</a>
+        </div>
+
+        <h3>Next Steps:</h3>
+        <ol>
+            <li>Run migrations: <code>python manage.py migrate</code></li>
+            <li>Create superuser: <code>python manage.py createsuperuser</code></li>
+            <li>Add test data via admin or shell</li>
+            <li>Test your django-easy-cache decorators</li>
+        </ol>
+    </div>
+</body>
+</html>

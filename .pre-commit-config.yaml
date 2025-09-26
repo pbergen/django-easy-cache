@@ -1,0 +1,82 @@
+# https://pre-commit.com/
+
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    # Update ruff version as well in .gitlab-ci.yml
+    rev: v0.12.0
+    hooks:
+      # Run the formatter.
+      - id: ruff-format
+      # Run the linter.
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        files: ^easy-cache/
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
+
+  - repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.19.1
+    hooks:
+      - id: blacken-docs
+        additional_dependencies:
+          - black==25.1.0
+        files: .*\.md|rst$
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        args: [ --py311-plus ]
+
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.25.0
+    hooks:
+      - id: django-upgrade
+        args: [--target-version, "4.2"]
+
+  - repo: https://github.com/ambient-innovation/boa-restrictor
+    rev: v1.8.1
+    hooks:
+      - id: boa-restrictor
+        args: [--config=pyproject.toml]
+        exclude: |
+          (?x)^(
+            /.*/tests/.*
+            |.*/test_.*\.py
+          )$
+        files: ^easy-cache/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-ast
+        files: ^easy-cache/
+      - id: check-builtin-literals
+        files: ^easy-cache/
+      - id: check-case-conflict
+        files: ^easy-cache/
+      - id: check-docstring-first
+        files: ^easy-cache/
+      - id: check-executables-have-shebangs
+      - id: check-illegal-windows-names
+      - id: check-shebang-scripts-are-executable
+      - id: check-json
+        files: ^easy-cache/
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: end-of-file-fixer
+        files: ^easy-cache/
+      - id: fix-byte-order-marker
+        files: ^easy-cache/
+      - id: mixed-line-ending
+        files: ^easy-cache/
+      - id: no-commit-to-branch
+        args: ["--pattern", '^^(?!(?:feature|hotfix|refactor|bugfix|maintenance)/[\w\d\-_#]+).*$']
+      - id: trailing-whitespace
+        files: ^easy-cache/
+        stages: [pre-commit]

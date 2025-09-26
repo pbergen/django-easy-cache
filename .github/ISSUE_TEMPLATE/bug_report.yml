@@ -1,0 +1,141 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in Django Easy Cache
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below to help us diagnose and fix the issue.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the bug
+      placeholder: |
+        1. Set up Django Easy Cache with...
+        2. Create a function with @easy_cache.time_based(...)
+        3. Call the function...
+        4. Observe the error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include any error messages or unexpected outputs
+      placeholder: Describe what actually happened, include full error messages if applicable
+    validations:
+      required: true
+
+  - type: textarea
+    id: code-sample
+    attributes:
+      label: Minimal Code Sample
+      description: Provide a minimal code sample that reproduces the issue
+      render: python
+      placeholder: |
+        # Your minimal code sample here
+        @easy_cache.time_based(invalidate_at="14:00")
+        def my_function():
+            # problematic code
+            pass
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Information
+      description: Please provide details about your environment
+      placeholder: |
+        - Django Easy Cache version:
+        - Django version:
+        - Python version:
+        - Cache backend (Redis/Memcached/Database):
+        - Operating System:
+        - Database:
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-traceback
+    attributes:
+      label: Error Traceback
+      description: If applicable, provide the full error traceback
+      render: python
+      placeholder: |
+        Traceback (most recent call last):
+          File "...", line ..., in ...
+            ...
+        Error: ...
+
+  - type: textarea
+    id: cache-configuration
+    attributes:
+      label: Cache Configuration
+      description: Your Django cache and Easy Cache configuration
+      render: python
+      placeholder: |
+        # settings.py
+        CACHES = {
+            # your cache configuration
+        }
+
+        easy_cache = {
+            # your easy cache configuration
+        }
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Low - Minor issue, workaround available
+        - Medium - Affects functionality but not critical
+        - High - Major functionality broken
+        - Critical - Application unusable, data loss, or security issue
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: additional-info
+    attributes:
+      label: Additional Information
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have tested this with the latest version of Django Easy Cache
+          required: false
+        - label: I can provide additional debugging information if needed
+          required: false
+        - label: I am willing to submit a pull request to fix this issue
+          required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (logs, screenshots, related issues, etc.)
+      placeholder: Any additional information that might help us understand and fix the bug
