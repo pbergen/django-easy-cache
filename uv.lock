@@ -398,7 +398,6 @@ dev = [
     { name = "django-stubs", extra = ["compatible-mypy"] },
     { name = "factory-boy" },
     { name = "ipython" },
-    { name = "m2r2" },
     { name = "pre-commit" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pytest" },
@@ -408,10 +407,13 @@ dev = [
     { name = "pytest-randomly" },
     { name = "pytest-xdist" },
     { name = "ruff" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme" },
     { name = "time-machine" },
     { name = "types-python-dateutil" },
+]
+docs = [
+    { name = "m2r2" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
 ]
 postgresql = [
     { name = "psycopg2-binary" },
@@ -439,7 +441,7 @@ requires-dist = [
     { name = "django-stubs", extras = ["compatible-mypy"], marker = "extra == 'dev'", specifier = "~=5.2" },
     { name = "factory-boy", marker = "extra == 'dev'" },
     { name = "ipython", marker = "extra == 'dev'" },
-    { name = "m2r2", marker = "extra == 'dev'" },
+    { name = "m2r2", marker = "extra == 'docs'" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'dev'", specifier = "~=3.2" },
     { name = "psycopg2-binary", marker = "extra == 'postgresql'", specifier = ">=2.9.0" },
@@ -451,13 +453,13 @@ requires-dist = [
     { name = "pytest-xdist", marker = "extra == 'dev'" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "sphinx", marker = "extra == 'dev'" },
-    { name = "sphinx-rtd-theme", marker = "extra == 'dev'" },
+    { name = "sphinx", marker = "extra == 'docs'" },
+    { name = "sphinx-rtd-theme", marker = "extra == 'docs'" },
     { name = "time-machine", marker = "extra == 'dev'" },
     { name = "twine", marker = "extra == 'publishing'" },
     { name = "types-python-dateutil", marker = "extra == 'dev'" },
 ]
-provides-extras = ["dev", "redis", "postgresql", "publishing"]
+provides-extras = ["dev", "docs", "redis", "postgresql", "publishing"]
 
 [[package]]
 name = "django-environ"

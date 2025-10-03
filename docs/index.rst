@@ -1,7 +1,20 @@
+Django Easy Cache
+=================
+
 .. mdinclude:: ../README.md
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+   :maxdepth: 2
+   :caption: Documentation:
 
-.. mdinclude:: ../CHANGELOG.md
+   getting-started
+   features/index
+   api-reference
+   development
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Additional Resources:
+
+   CHANGELOG
+   contributing

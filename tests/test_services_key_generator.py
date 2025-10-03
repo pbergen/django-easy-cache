@@ -1,7 +1,7 @@
 """Unit tests for KeyGenerator service"""
 
 from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, call
 
 from django.test import TestCase
 from django.http import HttpRequest
@@ -93,18 +93,19 @@ class TestKeyGenerator(TestCase):
         self.assertNotEqual(key1, key2)
 
     def test_simple_params_with_allowed_types(self):
-        """Test _simple_params with allowed types"""
+        """Test _simple_params with simple types (all types now use JSON serialization)"""
 
         def test_function(s, i, f, b, n):
             return s
 
         params = self.generator._simple_params(func=test_function, args=("string", 42, 3.14, True, None), kwargs={})
 
-        # Should include all allowed types except None
-        self.assertIn("string", params)
+        # All types now serialized via JSON (strings get quotes, booleans lowercase, null for None)
+        self.assertIn('"string"', params)  # JSON adds quotes to strings
         self.assertIn("42", params)
         self.assertIn("3.14", params)
-        self.assertIn("True", params)
+        self.assertIn("true", params)  # JSON uses lowercase for boolean
+        self.assertIn("null", params)  # JSON uses null for None
 
     def test_simple_params_with_method_self_filtering(self):
         """Test _simple_params filters out 'self' parameter for methods"""
@@ -148,9 +149,9 @@ class TestKeyGenerator(TestCase):
 
         params = self.generator._simple_params(func=test_view, args=(request,), kwargs={})
 
-        # Should include GET parameters
-        self.assertIn("param1=value1", params)
-        self.assertIn("param2=value2", params)
+        # GET parameters now serialized via JSON (strings get quotes)
+        self.assertIn('param1="value1"', params)
+        self.assertIn('param2="value2"', params)
 
     def test_simple_params_with_kwargs_filtering(self):
         """Test _simple_params filters out certain kwargs"""
@@ -172,7 +173,7 @@ class TestKeyGenerator(TestCase):
         self.assertNotIn("request", params)
         self.assertNotIn("args", params)
         self.assertNotIn("kwargs", params)
-        self.assertIn("valid_param=value", params)
+        self.assertIn('valid_param="value"', params)  # JSON adds quotes to strings
 
     def test_process_value_none(self):
         """Test _process_value with None"""
@@ -329,7 +330,16 @@ class TestKeyGenerator(TestCase):
     def test_max_value_length_config(self, mock_get_config):
         """Test that MAX_VALUE_LENGTH is respected from config"""
         mock_config = Mock()
-        mock_config.get.return_value = 50  # Custom max length
+
+        # Mock needs to return different values for different keys
+        def mock_get(key, default=None):
+            if key == "MAX_VALUE_LENGTH":
+                return 50
+            elif key == "DEFAULT_EXCLUDE_TYPES":
+                return ()
+            return default
+
+        mock_config.get.side_effect = mock_get
         mock_get_config.return_value = mock_config
 
         generator = KeyGenerator()
@@ -340,12 +350,16 @@ class TestKeyGenerator(TestCase):
 
         # Should be hashed because it exceeds config limit
         self.assertTrue(result.startswith("_"))
-        mock_config.get.assert_called_with("MAX_VALUE_LENGTH")
+        self.assertIn(call("MAX_VALUE_LENGTH"), mock_config.get.call_args_list)
 
     def test_repr_fallback_for_unknown_objects(self):
-        """Test repr() fallback for unknown object types"""
+        """Test object dict serialization for unknown object types"""
 
         class CustomClass:
+            def __init__(self):
+                self.value = 42
+                self.name = "test"
+
             def __repr__(self):
                 return "CustomClass(value=42)"
 
@@ -356,5 +370,7 @@ class TestKeyGenerator(TestCase):
 
         params = self.generator._simple_params(func=test_function, args=(custom_obj,), kwargs={})
 
-        # Should include repr() result
-        self.assertIn("CustomClass(value=42)", params)
+        # Should include object's attributes (not repr)
+        # Objects are now serialized as JSON dicts, not repr strings
+        self.assertIn('"value"', params)  # JSON serialized
+        self.assertIn("42", params)

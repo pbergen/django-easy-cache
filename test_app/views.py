@@ -1,5 +1,6 @@
 import time
 
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -164,6 +165,52 @@ class TestModelListView(ListView):
     context_object_name = "models"
     paginate_by = 10
 
-    @easy_cache.cron_based(cron_expression="*/5 * * * *")
     def get(self, request, *args, **kwargs):
+        # Verschiedene Methoden testen
+        start_time = time.time()
+        user_id = 1
+        user_obj = User.objects.get(pk=1)
+
+        processor = DataProcessor(user_id)
+
+        # Test 1: get_user_stats (Zeit-basiert, täglich um 02:00)
+        stats = processor.get_user_stats()
+        stats_time = time.time() - start_time
+
+        # Test 2: get_live_metrics (Cron-basiert, alle 15 Min)
+        start_time = time.time()
+        metrics = processor.get_live_metrics("page_views")
+        metrics_time = time.time() - start_time
+
+        # Test 3: generate_daily_report (Zeit-basiert, täglich um 00:00)
+        start_time = time.time()
+        report = processor.generate_daily_report("2025-09-03")
+        report_time = time.time() - start_time
+
+        dict_to_handle = {
+            "message": "Class method caching test successful!",
+            "user_id": user_id,
+            "user": user_obj,
+            "tests": {
+                "user_stats": {
+                    "result": stats,
+                    "cache_type": "time_based (daily 02:00)",
+                },
+                "live_metrics": {
+                    "result": metrics,
+                    "cache_type": "cron_based (* * * * *)",
+                },
+                "daily_report": {
+                    "result": report,
+                    "cache_type": "time_based (daily 00:00)",
+                },
+            },
+            "note": "Subsequent calls should be much faster due to caching!",
+        }
+
+        self.handle_dict(dict_to_handle)
         return super().get(request, *args, **kwargs)
+
+    @easy_cache.cron_based(cron_expression="*/5 * * * *")
+    def handle_dict(self, dict_to_handle: dict) -> dict:
+        return dict_to_handle

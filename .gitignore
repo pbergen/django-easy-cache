@@ -157,6 +157,11 @@ _build
 # Test databases
 *.sqlite
 
-# kilocode
+# AI
 .kilocode/
 ./.kilocodemodes
+.claude
+
+# macOS
+.DS_Store
+.github/.DS_Store
