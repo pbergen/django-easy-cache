@@ -35,10 +35,15 @@ def get_live_metrics():
 Configure Easy Cache in your `settings.py`:
 
 ```python
+from datetime import datetime, date, time
+import uuid
+
 easy_cache = {
     "DEFAULT_BACKEND": "default",
     "KEY_PREFIX": "easy_cache",
     "MAX_VALUE_LENGTH": 100,
+    # Types to auto-exclude from cache keys (inherently unstable/dynamic)
+    "DEFAULT_EXCLUDE_TYPES": (datetime, date, time, uuid.UUID),
     "DEBUG_TOOLBAR_INTEGRATION": False,
     "TRACKING": {
         "TRACK_CACHE_HITS": False,
@@ -52,6 +57,66 @@ easy_cache = {
     },
 }
 ```
+
+### Configuration Reference
+
+#### Core Settings
+
+**DEFAULT_BACKEND** (str, default: "default")
+- Django cache backend to use
+- Must match a key in `settings.CACHES`
+
+**KEY_PREFIX** (str, default: "easy_cache")
+- Prefix for all cache keys
+- Useful for namespacing in shared cache backends
+
+**MAX_VALUE_LENGTH** (int, default: 100)
+- Maximum length for cache key parameter values
+- Longer values are hashed automatically
+
+**DEFAULT_EXCLUDE_TYPES** (tuple, default: (datetime, date, time, uuid.UUID))
+- Types to automatically exclude from cache key generation
+- These types are inherently unstable/dynamic and would cause cache invalidation on every call
+- Customize to add your own unstable types:
+
+```python
+from datetime import datetime, date, time
+import uuid
+from myapp.models import DynamicModel
+
+easy_cache = {
+    "DEFAULT_EXCLUDE_TYPES": (datetime, date, time, uuid.UUID, DynamicModel),
+}
+```
+
+**DEBUG_TOOLBAR_INTEGRATION** (bool, default: False)
+- Enable Django Debug Toolbar integration (not yet implemented)
+
+#### Tracking Settings
+
+**TRACKING.TRACK_CACHE_HITS** (bool, default: False)
+- Track cache hits in database for analytics
+- Adds minimal overhead but provides valuable metrics
+
+**TRACKING.TRACK_CACHE_MISSES** (bool, default: True)
+- Track cache misses in database
+- Helps identify cache effectiveness
+
+**TRACKING.TRACK_PERFORMANCE** (bool, default: False)
+- Track performance metrics (execution time, etc.)
+- Useful for optimization
+
+#### Event Logging Settings
+
+**EVENTS.EVENT_CACHE_HITS** (bool, default: False)
+- Log cache hit events to Django logger
+- Useful for debugging
+
+**EVENTS.EVENT_CACHE_MISSES** (bool, default: False)
+- Log cache miss events to Django logger
+
+**EVENTS.EVENT_CACHE_ERRORS** (bool, default: False)
+- Log cache error events to Django logger
 
 ## Management Commands
 

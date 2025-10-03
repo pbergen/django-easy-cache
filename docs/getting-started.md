@@ -67,10 +67,15 @@ def get_data(location_id: int):
 Configure Easy Cache in your `settings.py`:
 
 ```python
+from datetime import datetime, date, time
+import uuid
+
 easy_cache = {
     "DEFAULT_BACKEND": "default",
     "KEY_PREFIX": "easy_cache",
     "MAX_VALUE_LENGTH": 100,
+    # Types to auto-exclude from cache keys (inherently unstable/dynamic)
+    "DEFAULT_EXCLUDE_TYPES": (datetime, date, time, uuid.UUID),
     "DEBUG_TOOLBAR_INTEGRATION": False,
     "TRACKING": {
         "TRACK_CACHE_HITS": False,
@@ -84,6 +89,20 @@ easy_cache = {
     },
 }
 ```
+
+### Configuration Options
+
+- **DEFAULT_BACKEND**: Django cache backend to use (default: "default")
+- **KEY_PREFIX**: Prefix for all cache keys (default: "easy_cache")
+- **MAX_VALUE_LENGTH**: Maximum length for cache key values (default: 100)
+- **DEFAULT_EXCLUDE_TYPES**: Tuple of types to automatically exclude from cache key generation (default: datetime, date, time, uuid.UUID)
+- **DEBUG_TOOLBAR_INTEGRATION**: Enable Django Debug Toolbar integration (not yet implemented)
+- **TRACKING.TRACK_CACHE_HITS**: Track cache hits in database (default: False)
+- **TRACKING.TRACK_CACHE_MISSES**: Track cache misses in database (default: True)
+- **TRACKING.TRACK_PERFORMANCE**: Track performance metrics (default: False)
+- **EVENTS.EVENT_CACHE_HITS**: Log cache hit events (default: False)
+- **EVENTS.EVENT_CACHE_MISSES**: Log cache miss events (default: False)
+- **EVENTS.EVENT_CACHE_ERRORS**: Log cache error events (default: False)
 
 ## Next Steps
 

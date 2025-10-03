@@ -68,6 +68,18 @@ Built-in validation for cache keys:
 - **Length Limits**: Maximum 220 characters (Memcached limit)
 - **Character Validation**: Allowed characters: `a-z`, `A-Z`, `0-9`, `.`, `_`, `:`, `-`
 - **Automatic Sanitization**: Invalid characters replaced with underscores
+- **Type Exclusion**: Automatically exclude unstable types (datetime, UUID, etc.) from cache keys
+
+Configure which types to exclude:
+
+```python
+from datetime import datetime, date, time
+import uuid
+
+easy_cache = {
+    "DEFAULT_EXCLUDE_TYPES": (datetime, date, time, uuid.UUID),
+}
+```
 
 ### Security Features
 
