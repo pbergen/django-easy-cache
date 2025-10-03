@@ -100,7 +100,7 @@ class KeyGenerator:
             elif isinstance(arg, (dict, list, tuple, set)):
                 # Handle collections using deterministic JSON serialization
                 try:
-                    serialized = self._serialize_collection(arg, for_display=True)
+                    serialized = self._serialize_collection(arg, for_display=False)
                     simple_values.append(serialized)
                 except (TypeError, ValueError) as e:
                     raise UncachableArgumentError(
@@ -126,7 +126,7 @@ class KeyGenerator:
                 if isinstance(value, (dict, list, tuple, set)):
                     # Handle collections in kwargs
                     try:
-                        serialized = self._serialize_collection(value, for_display=True)
+                        serialized = self._serialize_collection(value, for_display=False)
                         param_str = f"{key}={serialized}"
                         simple_values.append(param_str)
                     except (TypeError, ValueError) as e:
