@@ -1,7 +1,7 @@
 """Unit tests for KeyGenerator service"""
 
 from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, call
 
 from django.test import TestCase
 from django.http import HttpRequest
@@ -330,7 +330,16 @@ class TestKeyGenerator(TestCase):
     def test_max_value_length_config(self, mock_get_config):
         """Test that MAX_VALUE_LENGTH is respected from config"""
         mock_config = Mock()
-        mock_config.get.return_value = 50  # Custom max length
+
+        # Mock needs to return different values for different keys
+        def mock_get(key, default=None):
+            if key == "MAX_VALUE_LENGTH":
+                return 50
+            elif key == "DEFAULT_EXCLUDE_TYPES":
+                return ()
+            return default
+
+        mock_config.get.side_effect = mock_get
         mock_get_config.return_value = mock_config
 
         generator = KeyGenerator()
@@ -341,7 +350,7 @@ class TestKeyGenerator(TestCase):
 
         # Should be hashed because it exceeds config limit
         self.assertTrue(result.startswith("_"))
-        mock_config.get.assert_called_with("MAX_VALUE_LENGTH")
+        self.assertIn(call("MAX_VALUE_LENGTH"), mock_config.get.call_args_list)
 
     def test_repr_fallback_for_unknown_objects(self):
         """Test object dict serialization for unknown object types"""

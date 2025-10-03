@@ -3,8 +3,7 @@
 import hashlib
 import inspect
 import json
-import uuid
-from datetime import datetime, date, time
+from datetime import datetime
 from enum import Enum
 from typing import Any
 from collections.abc import Callable
@@ -20,36 +19,21 @@ class KeyGenerator:
     Supports both traditional period-based caching and new expiration-based caching
     where the period is excluded from the cache key for stable keys within cron intervals.
 
-    Auto-Exclude Feature:
-    ---------------------
     Automatically excludes inherently unstable types from cache keys to prevent
     cache invalidation on every call. This makes caching "just work" for most cases.
-
-    Excluded types:
-    - datetime, date, time (always dynamic timestamps)
-    - uuid.UUID (always unique identifiers)
     """
 
     MAX_VALUE_LENGTH = 100
 
-    # Types to auto-exclude (inherently unstable/dynamic)
-    DEFAULT_EXCLUDE_TYPES = (datetime, date, time, uuid.UUID)
-
-    def __init__(self, prefix: str = "easy_cache", auto_exclude: bool = True):
-        """
-        Initialize KeyGenerator with optional auto-exclude configuration.
-
-        Args:
-            prefix: Cache key prefix
-            auto_exclude: Enable automatic exclusion of unstable types (default: True)
-        """
+    def __init__(self, prefix: str = "easy_cache"):
+        """Initialize KeyGenerator."""
         self.config = get_config()
         self.prefix: str = prefix
         self.function_name: str | None = None
         self.original_params: str | None = None
 
-        # Auto-exclude configuration
-        self.auto_exclude = auto_exclude
+        # Load exclude_types from config
+        self.exclude_types = tuple(self.config.get("DEFAULT_EXCLUDE_TYPES", ()))
 
     def generate_key(
         self,
@@ -133,8 +117,7 @@ class KeyGenerator:
                 except (TypeError, ValueError) as e:
                     raise UncachableArgumentError(
                         f"Argument of type '{type(arg).__name__}' for function "
-                        f"'{func.__qualname__}' is not automatically cachable: {e}. "
-                        f"Please implement _cache_exclude_ protocol or use a custom key generation strategy."
+                        f"'{func.__qualname__}' is not automatically cachable: {e}"
                     )
 
         # Process kwargs
@@ -182,10 +165,7 @@ class KeyGenerator:
         Returns:
             True if value should be excluded, False otherwise
         """
-        if not self.auto_exclude:
-            return False
-
-        return isinstance(value, self.DEFAULT_EXCLUDE_TYPES)
+        return isinstance(value, self.exclude_types)
 
     def _filter_dict_for_cache(self, data: dict) -> dict:
         """
@@ -197,9 +177,6 @@ class KeyGenerator:
         Returns:
             Filtered dictionary with unstable types removed at all levels
         """
-        if not self.auto_exclude:
-            return data
-
         filtered = {}
         for key, value in data.items():
             # Skip values with unstable types
@@ -227,10 +204,9 @@ class KeyGenerator:
 
         This encoder creates stable representations without memory addresses by:
         1. Handling Enum types with stable serialization
-        2. Respecting _cache_exclude_ protocol for field exclusion
-        3. Handling Django models via primary key
-        4. Converting datetime objects to ISO format
-        5. Falling back to a stable string representation
+        2. Handling Django models via primary key
+        3. Converting datetime objects to ISO format
+        4. Falling back to a stable string representation
 
         Args:
             obj: The object to encode for JSON serialization
@@ -245,19 +221,6 @@ class KeyGenerator:
         # Handle frozensets deterministically (sort for consistent ordering)
         if isinstance(obj, frozenset):
             return sorted(list(obj), key=lambda x: (type(x).__name__, str(x)))
-
-        # Protocol: objects can define _cache_exclude_ to exclude dynamic fields
-        if hasattr(obj, "_cache_exclude_"):
-            # Filter out excluded fields from object's dict
-            filtered_dict = {
-                key: value
-                for key, value in obj.__dict__.items()
-                if key not in obj._cache_exclude_ and not key.startswith("_")
-            }
-            # Apply auto-exclude to remaining fields
-            if self.auto_exclude:
-                filtered_dict = self._filter_dict_for_cache(filtered_dict)
-            return filtered_dict
 
         # Handle Django models - use class name and primary key (stable identifier)
         if hasattr(obj, "pk") and hasattr(obj, "__class__"):
@@ -283,10 +246,9 @@ class KeyGenerator:
 
         # Fallback for custom objects: serialize their __dict__ with auto-exclude
         if hasattr(obj, "__dict__"):
-            # Get object's dict and filter if auto-exclude is enabled
-            obj_dict = {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
-            if self.auto_exclude:
-                obj_dict = self._filter_dict_for_cache(obj_dict)
+            # Get object's dict and filter to remove unstable types
+            obj_dict = {key: value for key, value in obj.__dict__.items() if not key.startswith("_")}
+            obj_dict = self._filter_dict_for_cache(obj_dict)
             return obj_dict
 
         # Last resort: use string representation (no memory address)
@@ -309,11 +271,10 @@ class KeyGenerator:
         elif isinstance(obj, tuple):
             obj = list(obj)
 
-        # For dictionaries, apply auto-exclude and sort keys for deterministic output
+        # For dictionaries, apply filtering and sort keys for deterministic output
         if isinstance(obj, dict):
-            # Apply auto-exclude filter to remove dynamic fields
-            if self.auto_exclude:
-                obj = self._filter_dict_for_cache(obj)
+            # Apply filter to remove dynamic fields
+            obj = self._filter_dict_for_cache(obj)
             obj = dict(sorted(obj.items()))
 
         # Serialize to JSON with sorted keys using custom encoder

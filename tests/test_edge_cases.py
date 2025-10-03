@@ -2,6 +2,7 @@
 
 import dataclasses
 from datetime import datetime, timezone
+from unittest.mock import patch
 from django.test import TestCase
 from django.contrib.auth.models import User
 from easy_cache.services.key_generator import KeyGenerator
@@ -65,10 +66,17 @@ class EdgeCaseTestCase(TestCase):
     # EDGE CASE 1: Dicts with dynamic fields
     # ==========================================
 
-    def test_dict_with_timestamp_field(self):
+    @patch("easy_cache.services.key_generator.get_config")
+    def test_dict_with_timestamp_field(self, mock_get_config):
         """Test that dicts with timestamps create different keys (no exclusion)"""
+        # Mock config to return empty exclude types tuple
+        mock_config = type(
+            "MockConfig", (), {"get": lambda self, key, default=None: () if key == "DEFAULT_EXCLUDE_TYPES" else default}
+        )()
+        mock_get_config.return_value = mock_config
+
         # Disable auto-exclude to test raw behavior
-        kg_no_auto = KeyGenerator(auto_exclude=False)
+        kg_no_auto = KeyGenerator()
 
         now1 = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
         now2 = datetime(2025, 1, 1, 13, 0, 0, tzinfo=timezone.utc)

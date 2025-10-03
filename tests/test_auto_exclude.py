@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime, date, time, timezone
+from unittest.mock import patch
 from django.test import TestCase
 from easy_cache.services.key_generator import KeyGenerator
 
@@ -19,7 +20,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_datetime_type(self):
         """Test that datetime values are auto-excluded regardless of field name"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "any_field_name": datetime.now(timezone.utc)}
         dict2 = {"id": 1, "any_field_name": datetime.now(timezone.utc)}
@@ -31,7 +32,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_date_type(self):
         """Test that date values are auto-excluded"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "some_date": date(2025, 1, 1)}
         dict2 = {"id": 1, "some_date": date(2025, 1, 2)}
@@ -43,7 +44,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_time_type(self):
         """Test that time values are auto-excluded"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "some_time": time(12, 0, 0)}
         dict2 = {"id": 1, "some_time": time(13, 0, 0)}
@@ -55,7 +56,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_multiple_datetime_fields(self):
         """Test that multiple datetime fields are auto-excluded"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         now1 = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
         now2 = datetime(2025, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
@@ -80,7 +81,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_uuid_type(self):
         """Test that UUID values are auto-excluded"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "request_id": uuid.uuid4()}
         dict2 = {"id": 1, "request_id": uuid.uuid4()}
@@ -92,7 +93,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_multiple_uuid_fields(self):
         """Test that multiple UUID fields are auto-excluded"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"user_id": 123, "request_id": uuid.uuid4(), "session_id": uuid.uuid4(), "trace_id": uuid.uuid4()}
         dict2 = {
@@ -111,9 +112,16 @@ class AutoExcludeTestCase(TestCase):
     # AUTO-EXCLUDE: Disabled
     # ==========================================
 
-    def test_auto_exclude_disabled(self):
+    @patch("easy_cache.services.key_generator.get_config")
+    def test_auto_exclude_disabled(self, mock_get_config):
         """Test that disabling auto-exclude includes all fields"""
-        kg = KeyGenerator(auto_exclude=False)
+        # Mock config to return empty exclude types tuple
+        mock_config = type(
+            "MockConfig", (), {"get": lambda self, key, default=None: () if key == "DEFAULT_EXCLUDE_TYPES" else default}
+        )()
+        mock_get_config.return_value = mock_config
+
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "timestamp": datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)}
         dict2 = {"id": 1, "timestamp": datetime(2025, 1, 1, 13, 0, 0, tzinfo=timezone.utc)}
@@ -121,7 +129,7 @@ class AutoExcludeTestCase(TestCase):
         key1 = kg.generate_key(func=self._test_function, args=(dict1,), kwargs={})
         key2 = kg.generate_key(func=self._test_function, args=(dict2,), kwargs={})
 
-        self.assertNotEqual(key1, key2, "With auto_exclude=False, all fields should be included")
+        self.assertNotEqual(key1, key2, "With empty exclude types, all fields should be included")
 
     # ==========================================
     # AUTO-EXCLUDE: Non-Dynamic Fields Included
@@ -129,7 +137,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_stable_fields_are_included(self):
         """Test that stable fields are still included in cache key"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {
             "user_id": 123,
@@ -153,7 +161,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_nested_dicts(self):
         """Test that auto-exclude works in nested dictionaries"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "metadata": {"created": datetime.now(timezone.utc), "name": "test"}}
         dict2 = {
@@ -171,7 +179,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_deeply_nested(self):
         """Test auto-exclude in deeply nested structures"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {"id": 1, "level1": {"level2": {"level3": {"timestamp": datetime.now(timezone.utc), "data": "stable"}}}}
         dict2 = {
@@ -197,7 +205,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_auto_exclude_in_lists(self):
         """Test that unstable types in lists are excluded"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         dict1 = {
             "id": 1,
@@ -225,7 +233,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_real_world_api_request(self):
         """Test real-world API request with mixed stable and unstable fields"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         request1 = {
             "user_id": 123,
@@ -249,7 +257,7 @@ class AutoExcludeTestCase(TestCase):
 
     def test_real_world_database_query(self):
         """Test real-world database query filters"""
-        kg = KeyGenerator(auto_exclude=True)
+        kg = KeyGenerator()
 
         filters1 = {
             "status": "active",

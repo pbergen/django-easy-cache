@@ -3,6 +3,8 @@
 import copy
 import threading
 import logging
+import uuid
+from datetime import datetime, date, time
 from typing import Any
 from django.conf import settings
 from django.core.cache import caches
@@ -23,6 +25,8 @@ class EasyCacheConfig:
         "KEY_PREFIX": "easy_cache",
         # Value length for each key
         "MAX_VALUE_LENGTH": 100,
+        # Types to auto-exclude from cache keys (inherently unstable/dynamic)
+        "DEFAULT_EXCLUDE_TYPES": (datetime, date, time, uuid.UUID),
         "DEBUG_TOOLBAR_INTEGRATION": False,  # not implemented yes
         # Analytics & Monitoring
         "TRACKING": {
