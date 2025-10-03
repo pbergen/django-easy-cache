@@ -162,3 +162,5 @@ _build
 ./.kilocodemodes
 .claude
 
+# macOS
+.DS_Store
