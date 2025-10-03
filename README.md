@@ -17,6 +17,7 @@ Transform your Django application's caching from manual, error-prone boilerplate
 - **🕒 Time-Based Invalidation**: Automatically invalidate caches at specific times with timezone support
 - **⏰ Cron-Based Scheduling**: Flexible cache invalidation using cron expressions
 - **📊 Database Analytics**: Comprehensive cache performance tracking and monitoring
+- **🎯 Object Parameter Caching**: Automatic handling of Django models and custom objects as parameters ([learn more](docs/features/object-parameter-caching.md))
 - **🔒 Cache Key Validation**: Built-in cache key validation and length limits
 - **🎛️ Django Admin**: Administrative interface for cache entries and event history
 - **📚 Type Hints**: Complete type annotations for better IDE support
@@ -114,6 +115,22 @@ from easy_cache import easy_cache
 def get_live_metrics():
     return fetch_realtime_data()
 ```
+
+### Caching with Object Parameters
+
+Easy Cache automatically handles Django models and custom objects as parameters:
+
+```python
+from easy_cache import easy_cache
+
+
+@easy_cache.time_based(invalidate_at="14:00")
+def get_user_profile(user_obj, settings_obj):
+    """Cache based on user.pk and settings attributes automatically"""
+    return expensive_profile_calculation(user_obj, settings_obj)
+```
+
+**[📖 Full Object Parameter Caching Guide](docs/features/object-parameter-caching.md)**
 
 ### Advanced Configuration
 
@@ -223,11 +240,11 @@ services:
 
 ### Available Build Arguments
 
-- `UV_INSTALL_DEV`: Install development dependencies (default: `true`)
-- `UV_INSTALL_REDIS`: Install Redis dependencies (default: `true`)
-- `UV_INSTALL_POSTGRESQL`: Install PostgreSQL dependencies (default: `true`)
+- `UV_INSTALL_DEV`: Install development dependencies (default: true)
+- `UV_INSTALL_REDIS`: Install Redis dependencies (default: true)
+- `UV_INSTALL_POSTGRESQL`: Install PostgreSQL dependencies (default: true)
 
-These can be combined as needed. For example, you can install both dev and Redis dependencies by setting both flags to `true`.
+These can be combined as needed. For example, you can install both dev and Redis dependencies by setting both flags to "true".
 
 ## 🧪 Testing Support
 
